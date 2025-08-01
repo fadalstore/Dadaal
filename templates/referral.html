@@ -13,7 +13,7 @@
         
         <div class="affiliate-box">
             <h3>Your Referral Code:</h3>
-            <div class="affiliate-code">DADAAL-{{ random.randint(1000, 9999) }}</div>
+            <div class="affiliate-code">{{ referral_code }}</div>
             <p>Share this code with friends and earn $5 for each signup!</p>
         </div>
         
@@ -30,7 +30,7 @@
             <div class="cta-section">
                 <h3>Share on Social Media:</h3>
                 <div class="cta-buttons">
-                    <a href="https://wa.me/?text=Join%20Dadaal%20App%20and%20earn%20money!%20Use%20my%20code:%20DADAAL-1234" class="cta-btn">WhatsApp</a>
+                    <a href="https://wa.me/?text=Join%20Dadaal%20App%20and%20earn%20money!%20Use%20my%20code:%20{{ referral_code }}" class="cta-btn">WhatsApp</a>
                     <a href="https://www.facebook.com/sharer/sharer.php?u=YOUR-APP-URL" class="cta-btn">Facebook</a>
                     <a href="https://twitter.com/intent/tweet?text=Join%20Dadaal%20App%20and%20earn%20money!" class="cta-btn">Twitter</a>
                 </div>

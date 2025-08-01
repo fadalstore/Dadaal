@@ -104,7 +104,8 @@ def ads():
 
 @app.route('/referral')
 def referral():
-    return render_template('referral.html')
+    referral_code = f"DADAAL-{random.randint(1000, 9999)}"
+    return render_template('referral.html', referral_code=referral_code)
 
 @app.route('/premium')
 def premium():
