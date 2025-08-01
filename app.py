@@ -107,6 +107,21 @@ def referral():
     referral_code = f"DADAAL-{random.randint(1000, 9999)}"
     return render_template('referral.html', referral_code=referral_code)
 
+@app.route('/track_referral', methods=['POST'])
+def track_referral():
+    data = request.get_json()
+    referral_code = data.get('referral_code')
+    action = data.get('action')  # 'signup', 'share', etc.
+    
+    # Here you would normally save to database
+    global total_earnings
+    if action == 'signup':
+        total_earnings += 5.00  # $5 for successful referral
+    elif action == 'share':
+        total_earnings += 0.25  # $0.25 for sharing
+    
+    return {'success': True, 'earnings': total_earnings}
+
 @app.route('/premium')
 def premium():
     return render_template('premium.html')

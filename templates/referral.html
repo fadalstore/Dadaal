@@ -30,12 +30,137 @@
             <div class="cta-section">
                 <h3>Share on Social Media:</h3>
                 <div class="cta-buttons">
-                    <a href="https://wa.me/?text=Join%20Dadaal%20App%20and%20earn%20money!%20Use%20my%20code:%20{{ referral_code }}" class="cta-btn">WhatsApp</a>
-                    <a href="https://www.facebook.com/sharer/sharer.php?u=YOUR-APP-URL" class="cta-btn">Facebook</a>
-                    <a href="https://twitter.com/intent/tweet?text=Join%20Dadaal%20App%20and%20earn%20money!" class="cta-btn">Twitter</a>
+                    <button onclick="shareWhatsApp()" class="cta-btn">📱 WhatsApp</button>
+                    <button onclick="shareFacebook()" class="cta-btn">📘 Facebook</button>
+                    <button onclick="shareTwitter()" class="cta-btn">🐦 Twitter</button>
+                    <button onclick="copyReferralLink()" class="cta-btn">📋 Copy Link</button>
                 </div>
             </div>
+            
+            <!-- Earnings Display -->
+            <div style="background: #e8f5e8; padding: 15px; border-radius: 5px; margin: 20px 0; text-align: center;">
+                <h3>💰 Your Referral Earnings</h3>
+                <div id="referral-earnings" style="font-size: 24px; color: green; font-weight: bold;">$0.00</div>
+                <p>Friends Referred: <span id="referral-count">0</span></p>
+            </div>
         </div>
+        
+        <script>
+            const referralCode = "{{ referral_code }}";
+            const appUrl = window.location.origin;
+            
+            // Load saved referral data
+            let referralEarnings = parseFloat(localStorage.getItem('referralEarnings') || '0');
+            let referralCount = parseInt(localStorage.getItem('referralCount') || '0');
+            
+            function updateReferralDisplay() {
+                document.getElementById('referral-earnings').textContent = `$${referralEarnings.toFixed(2)}`;
+                document.getElementById('referral-count').textContent = referralCount;
+            }
+            
+            function shareWhatsApp() {
+                const message = `🚀 Ku biir Dadaal App oo lacag samee online! 
+                
+💰 Adigu $2 bonus qaadan doonta
+💰 Aniguna $5 heli doonaa
+                
+Isticmaal code-kayga: ${referralCode}
+                
+Link: ${appUrl}`;
+                
+                const url = `https://wa.me/?text=${encodeURIComponent(message)}`;
+                window.open(url, '_blank');
+                trackShare('whatsapp');
+            }
+            
+            function shareFacebook() {
+                const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(appUrl)}&quote=${encodeURIComponent('Ku biir Dadaal App oo lacag samee! Code: ' + referralCode)}`;
+                window.open(url, '_blank');
+                trackShare('facebook');
+            }
+            
+            function shareTwitter() {
+                const message = `🚀 Ku biir Dadaal App oo lacag samee online! Code: ${referralCode} ${appUrl}`;
+                const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(message)}`;
+                window.open(url, '_blank');
+                trackShare('twitter');
+            }
+            
+            function copyReferralLink() {
+                const fullLink = `${appUrl}?ref=${referralCode}`;
+                navigator.clipboard.writeText(fullLink).then(() => {
+                    showNotification('✅ Link-ka waa la koobiyeeyay!');
+                    trackShare('copy');
+                }).catch(() => {
+                    // Fallback for older browsers
+                    const textArea = document.createElement('textarea');
+                    textArea.value = fullLink;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    showNotification('✅ Link-ka waa la koobiyeeyay!');
+                    trackShare('copy');
+                });
+            }
+            
+            function trackShare(platform) {
+                // Simulate earning for sharing
+                const shareBonus = 0.25; // $0.25 per share
+                referralEarnings += shareBonus;
+                localStorage.setItem('referralEarnings', referralEarnings.toString());
+                
+                updateReferralDisplay();
+                showNotification(`💰 Waxaad kasatay $${shareBonus.toFixed(2)} share-ka ${platform}!`);
+            }
+            
+            function showNotification(message) {
+                const notification = document.createElement('div');
+                notification.style.cssText = `
+                    position: fixed; top: 20px; right: 20px; 
+                    background: #4CAF50; color: white; padding: 15px; 
+                    border-radius: 5px; z-index: 1000;
+                    animation: slideIn 0.3s ease-in;
+                    max-width: 300px; text-align: center;
+                `;
+                notification.innerHTML = message;
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {
+                    notification.remove();
+                }, 4000);
+            }
+            
+            // Initialize on page load
+            document.addEventListener('DOMContentLoaded', function() {
+                updateReferralDisplay();
+            });
+        </script>
+        
+        <style>
+            @keyframes slideIn {
+                from { transform: translateX(100%); }
+                to { transform: translateX(0); }
+            }
+            
+            .cta-btn {
+                display: inline-block;
+                padding: 12px 20px;
+                margin: 8px;
+                background: #2c5aa0;
+                color: white;
+                text-decoration: none;
+                border-radius: 5px;
+                border: none;
+                cursor: pointer;
+                font-size: 16px;
+                transition: background 0.3s;
+            }
+            
+            .cta-btn:hover {
+                background: #1e3f73;
+            }
+        </style>
         
         <br>
         <div style="text-align: center;">
