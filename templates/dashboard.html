@@ -1,0 +1,35 @@
+
+<!DOCTYPE html>
+<html lang="so">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Dadaal App</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Dashboard - Dhamaan lacagaha la shubay</h1>
+        <table>
+            <tr>
+                <th>ID</th>
+                <th>Lacag ($)</th>
+                <th>Bonus ($)</th>
+                <th>Wadar ($)</th>
+            </tr>
+            {% for row in data %}
+            <tr>
+                <td>{{ row[0] }}</td>
+                <td>{{ row[1] }}</td>
+                <td>{{ row[2] }}</td>
+                <td>{{ row[3] }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+        <br>
+        <div style="text-align: center;">
+            <a href="/">Ku noqo bogga hore</a>
+        </div>
+    </div>
+</body>
+</html>
