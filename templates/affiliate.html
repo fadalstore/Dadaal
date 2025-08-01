@@ -1,0 +1,67 @@
+
+<!DOCTYPE html>
+<html lang="so">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Affiliate Program - Dadaal App</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>🤝 Affiliate Marketing Program</h1>
+        
+        <div class="affiliate-box">
+            <h3>Earn 20% Commission on Everything!</h3>
+            <p>Promote our products/services and earn money for each sale!</p>
+        </div>
+        
+        <div class="content">
+            <h3>Products to Promote:</h3>
+            
+            <div style="border: 2px solid #2c5aa0; padding: 20px; margin: 20px 0; border-radius: 5px;">
+                <h4>💻 Web Development Course - $299</h4>
+                <p><strong>Your Commission:</strong> $59.80 (20%)</p>
+                <p>Learn modern web development with HTML, CSS, JavaScript, Python</p>
+                <button onclick="copyAffiliateLink('course1')">Copy Affiliate Link</button>
+            </div>
+            
+            <div style="border: 2px solid #2c5aa0; padding: 20px; margin: 20px 0; border-radius: 5px;">
+                <h4>📱 Mobile App Template - $149</h4>
+                <p><strong>Your Commission:</strong> $29.80 (20%)</p>
+                <p>Ready-to-use mobile app templates for entrepreneurs</p>
+                <button onclick="copyAffiliateLink('template1')">Copy Affiliate Link</button>
+            </div>
+            
+            <div style="border: 2px solid #2c5aa0; padding: 20px; margin: 20px 0; border-radius: 5px;">
+                <h4>🎯 Digital Marketing Tools - $99/month</h4>
+                <p><strong>Your Commission:</strong> $19.80/month (20%)</p>
+                <p>Complete digital marketing suite for businesses</p>
+                <button onclick="copyAffiliateLink('tools1')">Copy Affiliate Link</button>
+            </div>
+            
+            <div class="cta-section">
+                <h3>Marketing Materials:</h3>
+                <div class="cta-buttons">
+                    <a href="#" class="cta-btn">Download Banners</a>
+                    <a href="#" class="cta-btn">Email Templates</a>
+                    <a href="#" class="cta-btn">Social Media Kit</a>
+                </div>
+            </div>
+        </div>
+        
+        <script>
+            function copyAffiliateLink(product) {
+                const link = `https://dadaal-app.com/affiliate/${product}?ref=YOUR_ID`;
+                navigator.clipboard.writeText(link);
+                alert('Affiliate link copied! Share it to earn commissions.');
+            }
+        </script>
+        
+        <br>
+        <div style="text-align: center;">
+            <a href="/">Ku noqo bogga hore</a>
+        </div>
+    </div>
+</body>
+</html>

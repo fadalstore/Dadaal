@@ -1,0 +1,64 @@
+
+<!DOCTYPE html>
+<html lang="so">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Account - Dadaal App</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>⭐ Premium Account</h1>
+        
+        <div class="premium-features">
+            <h3>Upgrade to Premium - Only $10/month!</h3>
+            <ul class="feature-list">
+                <li>No Ads Experience</li>
+                <li>5x More Bonuses</li>
+                <li>Priority Customer Support</li>
+                <li>Exclusive Premium Gifts</li>
+                <li>Advanced Analytics Dashboard</li>
+                <li>Monthly $20 Bonus</li>
+                <li>VIP Referral Program (10x earnings)</li>
+            </ul>
+            
+            <div style="text-align: center; margin-top: 30px;">
+                <button onclick="upgradeToPremium()" style="background: linear-gradient(45deg, #FFD700, #FFA500); color: black; padding: 15px 30px; font-size: 18px; border: none; border-radius: 25px; cursor: pointer;">
+                    🚀 Upgrade Now - $10/month
+                </button>
+            </div>
+        </div>
+        
+        <div class="content">
+            <h3>💎 Premium Members Earn More:</h3>
+            <div class="earnings-stats">
+                <div class="stat-box">
+                    <div class="stat-value">$500+</div>
+                    <div class="stat-label">Average Monthly Earnings</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value">5x</div>
+                    <div class="stat-label">Bonus Multiplier</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value">24/7</div>
+                    <div class="stat-label">Premium Support</div>
+                </div>
+            </div>
+        </div>
+        
+        <script>
+            function upgradeToPremium() {
+                alert('Redirecting to PayPal/Stripe payment...');
+                // Here you would integrate with payment processor
+            }
+        </script>
+        
+        <br>
+        <div style="text-align: center;">
+            <a href="/">Ku noqo bogga hore</a>
+        </div>
+    </div>
+</body>
+</html>

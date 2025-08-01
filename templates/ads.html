@@ -9,23 +9,72 @@
 <body>
     <div class="container">
         <h1>Xayeysiisyo</h1>
+        <!-- Google AdSense Banner -->
+        <div class="ad-container">
+            <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-YOUR-ADSENSE-ID"
+                 crossorigin="anonymous"></script>
+            <ins class="adsbygoogle"
+                 style="display:block"
+                 data-ad-client="ca-pub-YOUR-ADSENSE-ID"
+                 data-ad-slot="YOUR-AD-SLOT"
+                 data-ad-format="auto"
+                 data-full-width-responsive="true"></ins>
+            <script>
+                 (adsbygoogle = window.adsbygoogle || []).push({});
+            </script>
+        </div>
+
         <div class="content">
-            <h3>Xayeysiisyada cusub:</h3>
+            <h3>💰 Sponsored Ads - Click to Earn:</h3>
+            
             <div style="border: 2px solid #2c5aa0; padding: 20px; margin: 20px 0; border-radius: 5px;">
-                <h4>Xayeysiis 1</h4>
-                <p>Ku soo biir barnaamijka cusub ee hadiyado badan leh!</p>
+                <h4>🎯 Digital Marketing Course - $299</h4>
+                <p>Learn how to make $5000/month with digital marketing!</p>
+                <a href="/affiliate?ref=marketing-course" onclick="trackClick('marketing')" class="cta-btn">
+                    Learn More & Earn $59 Commission
+                </a>
             </div>
             
             <div style="border: 2px solid #2c5aa0; padding: 20px; margin: 20px 0; border-radius: 5px;">
-                <h4>Xayeysiis 2</h4>
-                <p>Hel bonus 20% markii aad dhigato $100 ama ka badan!</p>
+                <h4>📱 App Development Kit - $149</h4>
+                <p>Build mobile apps without coding! 30-day money back guarantee.</p>
+                <a href="/affiliate?ref=app-kit" onclick="trackClick('appdev')" class="cta-btn">
+                    Get Started & Earn $29 Commission
+                </a>
             </div>
             
             <div style="border: 2px solid #2c5aa0; padding: 20px; margin: 20px 0; border-radius: 5px;">
-                <h4>Xayeysiis 3</h4>
-                <p>Invite saaxiibbadaada oo hel $10 qof kasta!</p>
+                <h4>💎 Crypto Trading Bot - $199</h4>
+                <p>Automated crypto trading - Make money while you sleep!</p>
+                <a href="/affiliate?ref=crypto-bot" onclick="trackClick('crypto')" class="cta-btn">
+                    Try Now & Earn $39 Commission
+                </a>
+            </div>
+            
+            <!-- Native Ad -->
+            <div class="ad-container">
+                <h4>🔥 Recommended for You:</h4>
+                <div style="display: flex; align-items: center; gap: 15px; padding: 15px; background: #f9f9f9; border-radius: 5px;">
+                    <img src="https://via.placeholder.com/100x100" alt="Product" style="border-radius: 5px;">
+                    <div>
+                        <h5>Make $100/Day Online Course</h5>
+                        <p>Proven methods used by thousands of successful entrepreneurs</p>
+                        <button onclick="trackClick('course100')" class="cta-btn">Learn More</button>
+                    </div>
+                </div>
             </div>
         </div>
+        
+        <script>
+            function trackClick(adType) {
+                // Track ad clicks for analytics
+                console.log('Ad clicked:', adType);
+                // You can send this data to your analytics service
+                
+                // Simulate earning money from ad clicks
+                alert('You earned $0.10 from this click! Keep clicking ads to earn more.');
+            }
+        </script>
         <br>
         <div style="text-align: center;">
             <a href="/">Ku noqo bogga hore</a>

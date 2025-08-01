@@ -17,11 +17,47 @@
                 <li><a href="/dashboard">Dashboard</a></li>  
                 <li><a href="/gifts">Hadiyado</a></li>
                 <li><a href="/ads">Xayeysiisyo</a></li>
+                <li><a href="/referral">Invite Friends</a></li>
+                <li><a href="/premium">Premium</a></li>
+                <li><a href="/affiliate">Affiliate</a></li>
+                <li><a href="/earnings">Lacag la helay</a></li>
                 <li><a href="/admin">Admin</a></li>
             </ul>
         </nav>
+        
+        <!-- Google AdSense Ad -->
+        <div class="ad-container">
+            <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-YOUR-ADSENSE-ID"
+                 crossorigin="anonymous"></script>
+            <ins class="adsbygoogle"
+                 style="display:block"
+                 data-ad-client="ca-pub-YOUR-ADSENSE-ID"
+                 data-ad-slot="YOUR-AD-SLOT"
+                 data-ad-format="auto"
+                 data-full-width-responsive="true"></ins>
+            <script>
+                 (adsbygoogle = window.adsbygoogle || []).push({});
+            </script>
+        </div>
+        
         <div class="content">
             <p>Waxaan ku caawineeynaa lacag shubasho iyo hadiyado.</p>
+            
+            <!-- Earnings Display -->
+            <div class="earnings-display">
+                <h3>💰 Lacagta la helay: ${{ "%.2f"|format(earnings) }}</h3>
+                <p>Ku soo biir nidaamka lacag samynta!</p>
+            </div>
+            
+            <!-- Call to Action -->
+            <div class="cta-section">
+                <h3>🚀 Bilaw lacag samynta hadda!</h3>
+                <div class="cta-buttons">
+                    <a href="/referral" class="cta-btn">Invite Friends - Hel $5</a>
+                    <a href="/premium" class="cta-btn">Premium Account - $10/month</a>
+                    <a href="/affiliate" class="cta-btn">Affiliate Program - 20%</a>
+                </div>
+            </div>
         </div>
     </div>
 </body>

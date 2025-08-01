@@ -1,0 +1,91 @@
+
+<!DOCTYPE html>
+<html lang="so">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lacag la helay - Dadaal App</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>💰 Lacagta Aad Heshay</h1>
+        
+        <div class="earnings-stats">
+            <div class="stat-box">
+                <div class="stat-value">${{ "%.2f"|format(total_earnings) }}</div>
+                <div class="stat-label">Total Earnings</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value">${{ "%.2f"|format(affiliate_earnings) }}</div>
+                <div class="stat-label">Affiliate Earnings</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value">{{ referral_count }}</div>
+                <div class="stat-label">Referrals Made</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value">${{ "%.2f"|format(total_earnings * 0.12) }}</div>
+                <div class="stat-label">This Month</div>
+            </div>
+        </div>
+        
+        <div class="content">
+            <h3>📊 Earnings Breakdown:</h3>
+            
+            <table>
+                <tr>
+                    <th>Source</th>
+                    <th>Amount</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                </tr>
+                <tr>
+                    <td>AdSense Revenue</td>
+                    <td>${{ "%.2f"|format(total_earnings * 0.4) }}</td>
+                    <td>Today</td>
+                    <td style="color: green;">✅ Paid</td>
+                </tr>
+                <tr>
+                    <td>Affiliate Commission</td>
+                    <td>${{ "%.2f"|format(affiliate_earnings) }}</td>
+                    <td>Yesterday</td>
+                    <td style="color: green;">✅ Paid</td>
+                </tr>
+                <tr>
+                    <td>Referral Bonus</td>
+                    <td>${{ "%.2f"|format(referral_count * 5) }}</td>
+                    <td>This Week</td>
+                    <td style="color: orange;">⏳ Pending</td>
+                </tr>
+                <tr>
+                    <td>Premium Subscriptions</td>
+                    <td>${{ "%.2f"|format(total_earnings * 0.3) }}</td>
+                    <td>This Month</td>
+                    <td style="color: green;">✅ Paid</td>
+                </tr>
+            </table>
+            
+            <div class="cta-section">
+                <h3>💳 Withdraw Earnings:</h3>
+                <div class="cta-buttons">
+                    <button onclick="withdraw('paypal')" class="cta-btn">PayPal</button>
+                    <button onclick="withdraw('bank')" class="cta-btn">Bank Transfer</button>
+                    <button onclick="withdraw('crypto')" class="cta-btn">Cryptocurrency</button>
+                </div>
+            </div>
+        </div>
+        
+        <script>
+            function withdraw(method) {
+                alert(`Withdrawal via ${method} initiated. You will receive your money in 2-3 business days.`);
+            }
+        </script>
+        
+        <br>
+        <div style="text-align: center;">
+            <a href="/">Ku noqo bogga hore</a>
+        </div>
+    </div>
+</body>
+</html>
