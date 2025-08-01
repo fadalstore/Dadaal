@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="so">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lacag shubasho - Dadaal App</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Lacag shubasho</h1>
+        <form method="post">
+            <div style="text-align: center;">
+                <label for="amount">Qadarka lacagta ($):</label><br>
+                <input type="number" id="amount" name="amount" placeholder="Gali qadarka lacagta" required min="1"><br><br>
+                
+                <label for="phone">Nambarada telefoonka:</label><br>
+                <input type="tel" id="phone" name="phone" placeholder="252-XX-XXXXXXX" required><br><br>
+                
+                <button type="submit">Shubo lacagta</button>
+            </div>
+        </form>
+        <br>
+        <div style="text-align: center;">
+            <a href="/">Ku noqo bogga hore</a>
+        </div>
+    </div>
+</body>
+</html>
