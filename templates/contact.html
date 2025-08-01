@@ -1,0 +1,68 @@
+
+<!DOCTYPE html>
+<html lang="so">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nala soo xiriir - Dadaal App</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>📞 Nala soo xiriir</h1>
+        
+        <div class="content">
+            <h3>Soo dir fariintaada</h3>
+            <form method="post" style="max-width: 500px; margin: 0 auto;">
+                <div style="margin-bottom: 15px;">
+                    <label for="name">Magaca:</label><br>
+                    <input type="text" id="name" name="name" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;" required>
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    <label for="email">Email:</label><br>
+                    <input type="email" id="email" name="email" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;" required>
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    <label for="subject">Mawduuca:</label><br>
+                    <input type="text" id="subject" name="subject" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;" required>
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    <label for="message">Fariinta:</label><br>
+                    <textarea id="message" name="message" rows="5" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;" required></textarea>
+                </div>
+                
+                <div style="text-align: center;">
+                    <button type="submit" class="cta-btn">Dir fariinta</button>
+                </div>
+            </form>
+            
+            <h3>Macluumaadka xiriirka</h3>
+            <div style="text-align: center; margin: 30px 0;">
+                <p>📧 <strong>Email:</strong> info@dadaalapp.com</p>
+                <p>📞 <strong>Telefoon:</strong> +252-XX-XXXXXXX</p>
+                <p>📍 <strong>Cinwaanka:</strong> Mogadishu, Somalia</p>
+                <p>🕒 <strong>Saacadaha shaqada:</strong> Isniinka - Jimcaha, 8:00 AM - 6:00 PM</p>
+            </div>
+            
+            <h3>FAQ - Su'aalaha Inta badan la weydiiyo</h3>
+            <div style="border: 1px solid #ddd; padding: 15px; margin: 10px 0; border-radius: 5px;">
+                <h4>Sidee ayaan lacag u samyn karaa?</h4>
+                <p>Waxaad lacag u samyn kartaa affiliate marketing, referrals, iyo premium account.</p>
+            </div>
+            
+            <div style="border: 1px solid #ddd; padding: 15px; margin: 10px 0; border-radius: 5px;">
+                <h4>Goormaan heli karaa lacagtayda?</h4>
+                <p>Lacag bixinta waxay dhacaysaa 7-14 maalmood gudahood.</p>
+            </div>
+        </div>
+        
+        <br>
+        <div style="text-align: center;">
+            <a href="/">Ku noqo bogga hore</a>
+        </div>
+    </div>
+</body>
+</html>

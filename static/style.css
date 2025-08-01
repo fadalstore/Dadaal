@@ -176,6 +176,53 @@ input {
 }
 
 .feature-list {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.feature-list li {
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.feature-list li:before {
+    content: "✓ ";
+    color: #4CAF50;
+    font-weight: bold;
+    margin-right: 8px;
+}
+
+footer {
+    background-color: #f8f9fa !important;
+    border-top: 1px solid #dee2e6;
+    margin-top: 50px;
+}
+
+footer a {
+    text-decoration: none;
+    color: #2c5aa0;
+    transition: color 0.3s;
+}
+
+footer a:hover {
+    color: #1a3a70;
+    text-decoration: underline;
+}
+
+.alert {
+    padding: 15px;
+    margin: 20px 0;
+    border: 1px solid transparent;
+    border-radius: 4px;
+}
+
+.alert-success {
+    color: #3c763d;
+    background-color: #dff0d8;
+    border-color: #d6e9c6;
+}
+
+.feature-list {
     list-style: none;
     padding: 0;
 }
