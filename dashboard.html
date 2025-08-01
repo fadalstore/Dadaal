@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="so">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard - Dadaal App</title>
+</head>
+<body>
+    <h2>Dhamaan lacagaha la shubay</h2>
+    <table border="1">
+        <tr>
+            <th>ID</th>
+            <th>Lacag ($)</th>
+            <th>Bonus ($)</th>
+            <th>Wadar ($)</th>
+        </tr>
+        {% for row in data %}
+        <tr>
+            <td>{{ row[0] }}</td>
+            <td>{{ row[1] }}</td>
+            <td>{{ row[2] }}</td>
+            <td>{{ row[3] }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>
