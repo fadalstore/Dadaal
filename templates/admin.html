@@ -6,21 +6,75 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Login - Dadaal App</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .admin-login {
+            max-width: 400px;
+            margin: 100px auto;
+            padding: 30px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .admin-login h1 {
+            color: #667eea;
+            margin-bottom: 30px;
+        }
+        
+        .admin-login input {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            border: 2px solid #e1e8f0;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        
+        .admin-login button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+        
+        .admin-login button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .back-link {
+            margin-top: 20px;
+            color: #667eea;
+            text-decoration: none;
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Admin Login</h1>
+    <div class="admin-login">
+        <h1>🔐 Admin Login</h1>
+        
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                    <div style="margin-bottom: 20px; padding: 15px; background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; border-radius: 8px;">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
         <form method="post">
-            <div style="text-align: center;">
-                <input type="password" name="password" placeholder="Gali furaha admin" required>
-                <br><br>
-                <button type="submit">Soo gal</button>
-            </div>
+            <input type="password" name="password" placeholder="🔑 Gali password-ka admin-ka" required>
+            <button type="submit">🚀 Soo gal</button>
         </form>
-        <br>
-        <div style="text-align: center;">
-            <a href="/">Ku noqo bogga hore</a>
-        </div>
+        
+        <a href="/" class="back-link">← Ku noqo bogga hore</a>
     </div>
 </body>
 </html>

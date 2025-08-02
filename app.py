@@ -205,9 +205,30 @@ affiliate_earnings = 0
 def home():
     return render_template('index.html', earnings=total_earnings)
 
-@app.route('/admin')
-@admin_required
+@app.route('/admin', methods=['GET', 'POST'])
 def admin():
+    if request.method == 'POST':
+        password = request.form.get('password')
+        
+        # Admin password - change this in production!
+        if password == 'dadaal_admin_2025':
+            session['is_admin'] = True
+            session.permanent = True
+            flash('Admin-ka si guul leh ayaad u gashay!')
+            return redirect(url_for('admin_dashboard'))
+        else:
+            flash('Password-ku khalad yahay!')
+            return render_template('admin.html')
+    
+    # Check if already logged in as admin
+    if session.get('is_admin'):
+        return redirect(url_for('admin_dashboard'))
+    
+    return render_template('admin.html')
+
+@app.route('/admin/dashboard')
+@admin_required
+def admin_dashboard():
     conn = sqlite3.connect('dadaal.db')
     cursor = conn.cursor()
     
@@ -219,18 +240,33 @@ def admin():
     new_messages = cursor.fetchone()[0]
     
     cursor.execute('SELECT SUM(amount) FROM transactions WHERE type = "earning"')
-    total_earnings = cursor.fetchone()[0] or 0
+    total_earnings_db = cursor.fetchone()[0] or 0
     
     cursor.execute('SELECT SUM(commission_earned) FROM referrals WHERE status = "completed"')
-    affiliate_earnings = cursor.fetchone()[0] or 0
+    affiliate_earnings_db = cursor.fetchone()[0] or 0
+    
+    # Get recent users
+    cursor.execute('SELECT name, email, total_earnings, created_at FROM users ORDER BY created_at DESC LIMIT 10')
+    recent_users = cursor.fetchall()
+    
+    # Get recent transactions
+    cursor.execute('''
+        SELECT t.amount, t.type, t.description, t.created_at, u.name 
+        FROM transactions t 
+        JOIN users u ON t.user_id = u.id 
+        ORDER BY t.created_at DESC LIMIT 10
+    ''')
+    recent_transactions = cursor.fetchall()
     
     conn.close()
     
-    return render_template('admin.html', 
+    return render_template('admin_dashboard.html', 
                          user_stats=user_stats,
                          new_messages=new_messages,
-                         total_earnings=total_earnings, 
-                         affiliate_earnings=affiliate_earnings)
+                         total_earnings=total_earnings_db, 
+                         affiliate_earnings=affiliate_earnings_db,
+                         recent_users=recent_users,
+                         recent_transactions=recent_transactions)
 
 @app.route('/dashboard')
 @login_required
