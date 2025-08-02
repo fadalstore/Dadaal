@@ -12,6 +12,7 @@ from functools import wraps
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+import random
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'dadaal_secret_key_2025_change_in_production')
@@ -90,6 +91,39 @@ def send_reset_email(email, reset_token):
     except Exception as e:
         print(f"Email sending error: {e}")
         return False
+
+def send_verification_email(email, verification_code):
+    """Send email verification code"""
+    try:
+        # In production, you would send actual email here
+        # For demo purposes, we'll print the code
+        print(f"Verification code for {email}: {verification_code}")
+        
+        # Email content
+        subject = "Dadaal App - Email Xaqiijinta Code-ka"
+        body = f"""
+        Ku soo dhawow Dadaal App!
+        
+        Code-ka email xaqiijinta: {verification_code}
+        
+        Gali code-kan si aad u dhammaystirto diiwaan galinta.
+        
+        Code-ku wuxuu dhici doonaa 10 daqiiqo gudahood.
+        
+        Mahadsanid!
+        Kooxda Dadaal App
+        """
+        
+        # Simulate successful email sending
+        return True
+        
+    except Exception as e:
+        print(f"Email verification sending error: {e}")
+        return False
+
+def generate_verification_code():
+    """Generate 6-digit verification code"""
+    return str(random.randint(100000, 999999))
 
 # Database setup
 def init_db():
@@ -183,6 +217,18 @@ def init_db():
             used BOOLEAN DEFAULT 0,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (user_id) REFERENCES users (id)
+        )
+    ''')
+    
+    # Email verification codes table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS email_verification_codes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            email TEXT NOT NULL,
+            code TEXT NOT NULL,
+            expires_at TIMESTAMP NOT NULL,
+            verified BOOLEAN DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ''')
     
@@ -453,42 +499,38 @@ def register():
             if referrer:
                 referrer_id = referrer[0]
         
-        # Create user
-        password_hash = hash_password(password)
-        user_referral_code = f"DADAAL-{random.randint(10000, 99999)}"
+        # Generate verification code
+        verification_code = generate_verification_code()
+        expires_at = datetime.now() + timedelta(minutes=10)  # Code expires in 10 minutes
         
         try:
+            # Store verification code
             cursor.execute('''
-                INSERT INTO users (name, email, phone, password_hash, referral_code, referrer_id)
-                VALUES (?, ?, ?, ?, ?, ?)
-            ''', (name, email, phone, password_hash, user_referral_code, referrer_id))
+                INSERT INTO email_verification_codes (email, code, expires_at)
+                VALUES (?, ?, ?)
+            ''', (email, verification_code, expires_at))
             
-            user_id = cursor.lastrowid
-            
-            # Create referral record if applicable
-            if referrer_id:
-                cursor.execute('''
-                    INSERT INTO referrals (referrer_id, referred_id, commission_earned)
-                    VALUES (?, ?, ?)
-                ''', (referrer_id, user_id, 5.00))
+            # Send verification email
+            if send_verification_email(email, verification_code):
+                # Store user data temporarily in session for verification
+                session['pending_user'] = {
+                    'name': name,
+                    'email': email,
+                    'phone': phone,
+                    'password_hash': hash_password(password),
+                    'referral_code': f"DADAAL-{random.randint(10000, 99999)}",
+                    'referrer_id': referrer_id
+                }
                 
-                # Add referral bonus to referrer
-                cursor.execute('''
-                    UPDATE users SET total_earnings = total_earnings + 5.00 
-                    WHERE id = ?
-                ''', (referrer_id,))
-            
-            conn.commit()
-            
-            # Set session
-            session['user_id'] = user_id
-            session['user_name'] = name
-            session.permanent = True
-            
-            conn.close()
-            
-            flash('Akoonkaaga si guul leh ayaa loo sameeyay! Hadda waxaad gali kartaa dashboard-ka.')
-            return redirect(url_for('login'))
+                conn.commit()
+                conn.close()
+                
+                flash(f'Verification code waxaa lagu diray {email}. Fadlan hubi email-kaaga oo gali code-ka.')
+                return redirect(url_for('verify_email'))
+            else:
+                flash('Khalad ayaa dhacay email-ka dirista. Fadlan isku day mar kale.')
+                conn.close()
+                return redirect(url_for('register'))
             
         except Exception as e:
             conn.rollback()
@@ -602,6 +644,120 @@ def reset_password(token):
         flash('Khalad ayaa dhacay. Fadlan isku day mar kale.')
         print(f"Reset password error: {e}")
         return redirect(url_for('login'))
+
+@app.route('/verify_email', methods=['GET', 'POST'])
+def verify_email():
+    if 'pending_user' not in session:
+        flash('Wax khalad ah ayaa dhacay. Fadlan mar kale diiwaan geli.')
+        return redirect(url_for('register'))
+    
+    if request.method == 'POST':
+        verification_code = sanitize_input(request.form.get('verification_code'))
+        
+        if not verification_code:
+            flash('Fadlan gali verification code-ka.')
+            return render_template('verify_email.html')
+        
+        try:
+            conn = sqlite3.connect('dadaal.db')
+            cursor = conn.cursor()
+            
+            # Check if verification code is valid
+            cursor.execute('''
+                SELECT id, email FROM email_verification_codes 
+                WHERE email = ? AND code = ? AND expires_at > ? AND verified = 0
+                ORDER BY created_at DESC LIMIT 1
+            ''', (session['pending_user']['email'], verification_code, datetime.now()))
+            
+            verification_record = cursor.fetchone()
+            
+            if verification_record:
+                # Mark code as verified
+                cursor.execute('''
+                    UPDATE email_verification_codes SET verified = 1 
+                    WHERE id = ?
+                ''', (verification_record[0],))
+                
+                # Create the user account
+                user_data = session['pending_user']
+                cursor.execute('''
+                    INSERT INTO users (name, email, phone, password_hash, referral_code, referrer_id, email_verified)
+                    VALUES (?, ?, ?, ?, ?, ?, 1)
+                ''', (user_data['name'], user_data['email'], user_data['phone'], 
+                      user_data['password_hash'], user_data['referral_code'], user_data['referrer_id']))
+                
+                user_id = cursor.lastrowid
+                
+                # Create referral record if applicable
+                if user_data['referrer_id']:
+                    cursor.execute('''
+                        INSERT INTO referrals (referrer_id, referred_id, commission_earned)
+                        VALUES (?, ?, ?)
+                    ''', (user_data['referrer_id'], user_id, 5.00))
+                    
+                    # Add referral bonus to referrer
+                    cursor.execute('''
+                        UPDATE users SET total_earnings = total_earnings + 5.00 
+                        WHERE id = ?
+                    ''', (user_data['referrer_id'],))
+                
+                conn.commit()
+                
+                # Clear pending user from session
+                session.pop('pending_user', None)
+                
+                # Set user session
+                session['user_id'] = user_id
+                session['user_name'] = user_data['name']
+                session.permanent = True
+                
+                conn.close()
+                
+                flash('Email-kaaga si guul leh ayaa loo xaqiijiyay! Akoonkaaga waa la sameeyay.')
+                return redirect(url_for('dashboard'))
+            else:
+                flash('Verification code khalad ama wuu dhacay. Fadlan isku day mar kale.')
+                conn.close()
+                return render_template('verify_email.html')
+                
+        except Exception as e:
+            flash('Khalad ayaa dhacay verification-ka. Fadlan isku day mar kale.')
+            print(f"Email verification error: {e}")
+            return render_template('verify_email.html')
+    
+    return render_template('verify_email.html', email=session['pending_user']['email'])
+
+@app.route('/resend_verification', methods=['POST'])
+def resend_verification():
+    if 'pending_user' not in session:
+        return {'success': False, 'error': 'No pending verification found'}
+    
+    try:
+        email = session['pending_user']['email']
+        verification_code = generate_verification_code()
+        expires_at = datetime.now() + timedelta(minutes=10)
+        
+        conn = sqlite3.connect('dadaal.db')
+        cursor = conn.cursor()
+        
+        # Insert new verification code
+        cursor.execute('''
+            INSERT INTO email_verification_codes (email, code, expires_at)
+            VALUES (?, ?, ?)
+        ''', (email, verification_code, expires_at))
+        
+        conn.commit()
+        conn.close()
+        
+        # Send new verification email
+        if send_verification_email(email, verification_code):
+            return {'success': True, 'message': 'Verification code cusub waa la diray'}
+        else:
+            return {'success': False, 'error': 'Email sending failed'}
+            
+    except Exception as e:
+        print(f"Resend verification error: {e}")
+        return {'success': False, 'error': 'Technical error occurred'}
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():

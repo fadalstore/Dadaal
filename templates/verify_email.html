@@ -1,0 +1,321 @@
+
+<!DOCTYPE html>
+<html lang="so">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📧 Email Xaqiijinta - Dadaal App</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            padding: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .verify-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 25px;
+            padding: 40px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+            width: 100%;
+            max-width: 450px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .verify-title {
+            color: #333;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .verify-subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+
+        .email-display {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            border: 2px solid #e1e5e9;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .code-input {
+            width: 100%;
+            padding: 20px;
+            border: 3px solid #e1e5e9;
+            border-radius: 15px;
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            letter-spacing: 8px;
+            margin-bottom: 25px;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+
+        .code-input:focus {
+            border-color: #667eea;
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+
+        .verify-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 18px;
+            border-radius: 15px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+
+        .verify-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .resend-btn {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+            border: 2px solid #667eea;
+            padding: 12px 25px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+
+        .resend-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .timer {
+            color: #e74c3c;
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+        }
+
+        .info-box {
+            background: rgba(102, 126, 234, 0.1);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            color: #333;
+            line-height: 1.5;
+        }
+
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 12px;
+            font-weight: 500;
+        }
+
+        .alert-danger {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .alert-success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .back-link {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 480px) {
+            .verify-container {
+                padding: 30px 20px;
+                margin: 10px;
+                border-radius: 20px;
+            }
+
+            .verify-title {
+                font-size: 2rem;
+            }
+
+            .code-input {
+                font-size: 20px;
+                letter-spacing: 6px;
+                padding: 15px;
+            }
+
+            .verify-btn {
+                padding: 15px;
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="verify-container">
+        <h1 class="verify-title">📧 Email Xaqiijinta</h1>
+        <p class="verify-subtitle">
+            Verification code waxaan kuugu dirnay email-kaaga
+        </p>
+
+        <div class="email-display">
+            📧 {{ email }}
+        </div>
+
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-danger">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="info-box">
+            <strong>📱 Sida ay u shaqayso:</strong><br>
+            1. Hubi email-kaaga<br>
+            2. Hel 6-digit code-ka<br>
+            3. Gali code-ka hoose<br>
+            4. Riix "Xaqiiji Email"
+        </div>
+
+        <form method="POST" id="verifyForm">
+            <input type="text" 
+                   name="verification_code" 
+                   class="code-input" 
+                   placeholder="123456" 
+                   maxlength="6" 
+                   required
+                   autocomplete="off">
+            
+            <button type="submit" class="verify-btn">
+                ✅ XAQIIJI EMAIL
+            </button>
+        </form>
+
+        <div class="timer" id="timer">
+            Code-ku wuxuu dhici doonaa: <span id="countdown">10:00</span>
+        </div>
+
+        <button class="resend-btn" onclick="resendCode()" id="resendBtn">
+            🔄 Dir Code Cusub
+        </button>
+
+        <br><br>
+        <a href="{{ url_for('register') }}" class="back-link">← Ku noqo diiwaan galinta</a>
+    </div>
+
+    <script>
+        // Countdown timer
+        let timeLeft = 600; // 10 minutes in seconds
+        
+        function updateTimer() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            document.getElementById('countdown').textContent = 
+                `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            
+            if (timeLeft <= 0) {
+                document.getElementById('timer').innerHTML = 
+                    '<span style="color: #e74c3c;">⏰ Code-ku wuu dhacay. Fadlan code cusub waydiiso.</span>';
+                return;
+            }
+            
+            timeLeft--;
+            setTimeout(updateTimer, 1000);
+        }
+        
+        updateTimer();
+
+        // Auto-format code input
+        const codeInput = document.querySelector('.code-input');
+        codeInput.addEventListener('input', function(e) {
+            // Only allow numbers
+            this.value = this.value.replace(/[^0-9]/g, '');
+            
+            // Auto-submit when 6 digits entered
+            if (this.value.length === 6) {
+                document.getElementById('verifyForm').submit();
+            }
+        });
+
+        // Resend code function
+        async function resendCode() {
+            const btn = document.getElementById('resendBtn');
+            btn.disabled = true;
+            btn.innerHTML = '⏳ Waa la diraysaa...';
+            
+            try {
+                const response = await fetch('/resend_verification', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('✅ Code cusub waa la diray email-kaaga!');
+                    // Reset timer
+                    timeLeft = 600;
+                    updateTimer();
+                } else {
+                    alert('❌ Khalad ayaa dhacay: ' + data.error);
+                }
+            } catch (error) {
+                alert('❌ Khalad ayaa dhacay. Fadlan isku day mar kale.');
+            }
+            
+            btn.disabled = false;
+            btn.innerHTML = '🔄 Dir Code Cusub';
+        }
+
+        // Form submission
+        document.getElementById('verifyForm').addEventListener('submit', function(e) {
+            const code = codeInput.value;
+            
+            if (code.length !== 6) {
+                alert('Fadlan gali 6-digit code buuxda!');
+                e.preventDefault();
+                return;
+            }
+            
+            // Show loading state
+            const btn = document.querySelector('.verify-btn');
+            btn.innerHTML = '⏳ Waa la xaqiijinayaa...';
+            btn.disabled = true;
+        });
+
+        // Focus on code input when page loads
+        window.addEventListener('load', function() {
+            codeInput.focus();
+        });
+    </script>
+</body>
+</html>
