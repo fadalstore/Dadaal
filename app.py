@@ -235,40 +235,50 @@ def admin():
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    conn = sqlite3.connect('dadaal.db')
-    cursor = conn.cursor()
-    
-    # Get user's earnings and stats
-    cursor.execute('''
-        SELECT total_earnings, referral_code, premium_until 
-        FROM users WHERE id = ?
-    ''', (session['user_id'],))
-    user_data = cursor.fetchone()
-    
-    # Get recent transactions
-    cursor.execute('''
-        SELECT amount, type, description, created_at 
-        FROM transactions 
-        WHERE user_id = ? 
-        ORDER BY created_at DESC 
-        LIMIT 10
-    ''', (session['user_id'],))
-    transactions = cursor.fetchall()
-    
-    # Get referral stats
-    cursor.execute('''
-        SELECT COUNT(*) as count, COALESCE(SUM(commission_earned), 0) as total
-        FROM referrals 
-        WHERE referrer_id = ? AND status = "completed"
-    ''', (session['user_id'],))
-    referral_stats = cursor.fetchone()
-    
-    conn.close()
-    
-    return render_template('dashboard.html', 
-                         user_data=user_data,
-                         transactions=transactions,
-                         referral_stats=referral_stats)
+    try:
+        conn = sqlite3.connect('dadaal.db')
+        cursor = conn.cursor()
+        
+        # Get user's earnings and stats
+        cursor.execute('''
+            SELECT total_earnings, referral_code, premium_until, name, email
+            FROM users WHERE id = ?
+        ''', (session['user_id'],))
+        user_data = cursor.fetchone()
+        
+        if not user_data:
+            flash('Akoonkaaga lama helin. Fadlan mar kale gal.')
+            return redirect(url_for('login'))
+        
+        # Get recent transactions
+        cursor.execute('''
+            SELECT amount, type, description, created_at 
+            FROM transactions 
+            WHERE user_id = ? 
+            ORDER BY created_at DESC 
+            LIMIT 10
+        ''', (session['user_id'],))
+        transactions = cursor.fetchall()
+        
+        # Get referral stats
+        cursor.execute('''
+            SELECT COUNT(*) as count, COALESCE(SUM(commission_earned), 0) as total
+            FROM referrals 
+            WHERE referrer_id = ? AND status = "completed"
+        ''', (session['user_id'],))
+        referral_stats = cursor.fetchone()
+        
+        conn.close()
+        
+        return render_template('dashboard.html', 
+                             user_data=user_data,
+                             transactions=transactions,
+                             referral_stats=referral_stats)
+                             
+    except Exception as e:
+        flash('Khalad ayaa dhacay dashboard-ka la keenayay.')
+        print(f"Dashboard error: {e}")
+        return redirect(url_for('home'))
 
 @app.route('/payment', methods=['GET', 'POST'])
 @login_required
@@ -427,27 +437,36 @@ def login():
         try:
             conn = sqlite3.connect('dadaal.db')
             cursor = conn.cursor()
-            cursor.execute('SELECT id, name, password_hash FROM users WHERE email = ? AND status = "active"', (email,))
+            cursor.execute('SELECT id, name, password_hash, status FROM users WHERE email = ?', (email,))
             user = cursor.fetchone()
             conn.close()
             
-            if user and len(user) >= 3 and user[2]:
-                if verify_password(user[2], password):
-                    session['user_id'] = user[0]
-                    session['user_name'] = user[1]
-                    session.permanent = True
-                    
-                    flash(f'Ku soo dhawow dib, {user[1]}!')
-                    return redirect(url_for('dashboard'))
-                else:
-                    flash('Password khalad.')
-                    return render_template('login.html')
+            if not user:
+                flash('Email-kan ma jiro. Fadlan diiwaan geli.')
+                return render_template('login.html')
+            
+            if user[3] != 'active':
+                flash('Akoonkaaga waa la joojiyay. Fadlan la xiriir maamulka.')
+                return render_template('login.html')
+            
+            if not user[2]:
+                flash('Akoonkaaga ma laha password. Fadlan mar kale diiwaan geli.')
+                return render_template('login.html')
+            
+            if verify_password(user[2], password):
+                session['user_id'] = user[0]
+                session['user_name'] = user[1]
+                session['is_admin'] = False  # Add admin check if needed
+                session.permanent = True
+                
+                flash(f'Ku soo dhawow dib, {user[1]}!')
+                return redirect(url_for('dashboard'))
             else:
-                flash('Email-kan ma jiro ama ma laha password.')
+                flash('Password khalad. Fadlan isku day mar kale.')
                 return render_template('login.html')
                 
         except Exception as e:
-            flash('Khalad ayaa dhacay. Fadlan isku day mar kale.')
+            flash('Khalad ayaa dhacay mareegta. Fadlan isku day mar kale.')
             print(f"Login error: {e}")
             return render_template('login.html')
     
