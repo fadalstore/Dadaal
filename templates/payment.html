@@ -1,10 +1,13 @@
-
 <!DOCTYPE html>
 <html lang="so">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>💳 Lacag shubasho - Dadaal App</title>
+    <title>Lacag Shubasho - Dadaal App</title>
+
+    <!-- Google AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6630634320422572"
+         crossorigin="anonymous"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <style>
         .payment-hero {
@@ -13,7 +16,7 @@
             padding: 40px 20px;
             text-align: center;
         }
-        
+
         .payment-container {
             max-width: 600px;
             margin: -50px auto 40px;
@@ -24,29 +27,29 @@
             position: relative;
             z-index: 10;
         }
-        
+
         .payment-title {
             font-size: 2.5rem;
             margin-bottom: 15px;
             text-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
-        
+
         .payment-subtitle {
             font-size: 1.2rem;
             opacity: 0.9;
         }
-        
+
         .form-section {
             margin-bottom: 30px;
         }
-        
+
         .section-title {
             font-size: 1.3rem;
             color: #333;
             margin-bottom: 15px;
             font-weight: bold;
         }
-        
+
         .amount-input {
             width: 100%;
             padding: 20px;
@@ -58,14 +61,14 @@
             transition: all 0.3s ease;
             background: #f8f9fa;
         }
-        
+
         .amount-input:focus {
             border-color: #667eea;
             outline: none;
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
             background: white;
         }
-        
+
         .phone-input {
             width: 100%;
             padding: 15px 20px;
@@ -74,13 +77,13 @@
             font-size: 16px;
             transition: all 0.3s ease;
         }
-        
+
         .phone-input:focus {
             border-color: #667eea;
             outline: none;
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
-        
+
         .payment-btn {
             width: 100%;
             background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
@@ -94,19 +97,19 @@
             transition: all 0.3s ease;
             margin-top: 20px;
         }
-        
+
         .payment-btn:hover {
             transform: translateY(-3px);
             box-shadow: 0 10px 25px rgba(39, 174, 96, 0.3);
         }
-        
+
         .payment-methods {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
             gap: 15px;
             margin: 20px 0;
         }
-        
+
         .method-card {
             background: #f8f9fa;
             border: 2px solid #e1e5e9;
@@ -116,18 +119,18 @@
             cursor: pointer;
             transition: all 0.3s ease;
         }
-        
+
         .method-card:hover,
         .method-card.active {
             border-color: #667eea;
             background: rgba(102, 126, 234, 0.1);
         }
-        
+
         .method-icon {
             font-size: 2rem;
             margin-bottom: 5px;
         }
-        
+
         .security-info {
             background: linear-gradient(135deg, #e8f5e8 0%, #f0f8f0 100%);
             border-radius: 12px;
@@ -135,7 +138,7 @@
             margin: 20px 0;
             border-left: 4px solid #27ae60;
         }
-        
+
         .back-link {
             display: inline-block;
             color: #667eea;
@@ -143,7 +146,7 @@
             margin-bottom: 20px;
             font-weight: 600;
         }
-        
+
         .back-link:hover {
             text-decoration: underline;
         }
@@ -188,13 +191,13 @@
     <!-- Payment Form -->
     <div class="payment-container">
         <a href="/" class="back-link">← Ku noqo bogga hore</a>
-        
+
         <form method="POST" id="paymentForm">
             <div class="form-section">
                 <h3 class="section-title">💰 Qadarka lacagta ($):</h3>
                 <input type="number" name="amount" class="amount-input" placeholder="Gali qadarka lacagta" min="1" required>
             </div>
-            
+
             <div class="form-section">
                 <h3 class="section-title">📱 Habka lacag shubasho:</h3>
                 <input type="hidden" name="payment_method" id="payment_method" value="mobile_money">
@@ -213,17 +216,17 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="form-section">
                 <h3 class="section-title">📞 Nambarada telefoonka:</h3>
                 <input type="tel" name="phone" class="phone-input" placeholder="252-XX-XXXXXXX" required>
             </div>
-            
+
             <div class="security-info">
                 <h4>🔒 Ammaan</h4>
                 <p>Dhammaan macaamiishaada way ammaan yihiin oo waxay u maraan SSL encryption. Ma keydineyno xogta kaararka.</p>
             </div>
-            
+
             <button type="submit" class="payment-btn">
                 🚀 SHUBO LACAGTA
             </button>
@@ -259,30 +262,30 @@
             card.addEventListener('click', function() {
                 document.querySelectorAll('.method-card').forEach(c => c.classList.remove('active'));
                 this.classList.add('active');
-                
+
                 // Update hidden input with selected method
                 const method = this.getAttribute('data-method');
                 document.getElementById('payment_method').value = method;
             });
         });
-        
+
         // Form validation
         document.getElementById('paymentForm').addEventListener('submit', function(e) {
             const amount = document.querySelector('input[name="amount"]').value;
             const phone = document.querySelector('input[name="phone"]').value;
-            
+
             if (!amount || amount <= 0) {
                 alert('Fadlan geli lacag sax ah.');
                 e.preventDefault();
                 return;
             }
-            
+
             if (!phone) {
                 alert('Fadlan geli nambarka telefoonka.');
                 e.preventDefault();
                 return;
             }
-            
+
             // Show loading state
             const btn = document.querySelector('.payment-btn');
             btn.innerHTML = '⏳ Waa la processing...';
