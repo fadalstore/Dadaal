@@ -9,6 +9,9 @@ import hashlib
 import secrets
 import re
 from functools import wraps
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'dadaal_secret_key_2025_change_in_production')
@@ -69,6 +72,24 @@ def admin_required(f):
 def generate_secure_token():
     """Generate secure random token"""
     return secrets.token_urlsafe(32)
+
+def send_reset_email(email, reset_token):
+    """Send password reset email"""
+    try:
+        # Email configuration - you can use a service like SendGrid, Gmail, etc.
+        # For demo purposes, we'll simulate sending
+        reset_link = f"https://{os.environ.get('REPLIT_DEV_DOMAIN', 'localhost:5000')}/reset_password/{reset_token}"
+        
+        # In production, you would actually send an email here
+        # For now, we'll just print the reset link
+        print(f"Password reset link for {email}: {reset_link}")
+        
+        # Simulate successful email sending
+        return True
+        
+    except Exception as e:
+        print(f"Email sending error: {e}")
+        return False
 
 # Database setup
 def init_db():
@@ -147,6 +168,19 @@ def init_db():
             clicks INTEGER DEFAULT 0,
             conversions INTEGER DEFAULT 0,
             commission_rate REAL DEFAULT 0.20,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users (id)
+        )
+    ''')
+    
+    # Password reset tokens table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS password_reset_tokens (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            token TEXT UNIQUE NOT NULL,
+            expires_at TIMESTAMP NOT NULL,
+            used BOOLEAN DEFAULT 0,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (user_id) REFERENCES users (id)
         )
@@ -463,6 +497,111 @@ def register():
             return redirect(url_for('register'))
     
     return render_template('register.html')
+
+@app.route('/forgot_password', methods=['GET', 'POST'])
+def forgot_password():
+    if request.method == 'POST':
+        email = sanitize_input(request.form.get('email'))
+        
+        if not email or not validate_email(email):
+            flash('Fadlan geli email sax ah.')
+            return render_template('forgot_password.html')
+        
+        try:
+            conn = sqlite3.connect('dadaal.db')
+            cursor = conn.cursor()
+            
+            # Check if user exists
+            cursor.execute('SELECT id, name FROM users WHERE email = ?', (email,))
+            user = cursor.fetchone()
+            
+            if user:
+                # Generate reset token
+                reset_token = secrets.token_urlsafe(32)
+                expires_at = datetime.now() + timedelta(hours=1)  # Token expires in 1 hour
+                
+                # Save reset token
+                cursor.execute('''
+                    INSERT INTO password_reset_tokens (user_id, token, expires_at)
+                    VALUES (?, ?, ?)
+                ''', (user[0], reset_token, expires_at))
+                
+                conn.commit()
+                
+                # Send reset email
+                if send_reset_email(email, reset_token):
+                    flash('Fariinta password reset-ka waxaa lagu diray email-kaaga. Hubi email-kaaga.')
+                else:
+                    flash('Khalad ayaa dhacay email-ka dirista. Fadlan isku day mar kale.')
+            else:
+                # Don't reveal if email exists or not for security
+                flash('Haddii email-kaan jiro, fariinta password reset waxaa lagu diray email-kaaga.')
+            
+            conn.close()
+            return redirect(url_for('forgot_password'))
+            
+        except Exception as e:
+            flash('Khalad ayaa dhacay. Fadlan isku day mar kale.')
+            print(f"Forgot password error: {e}")
+            return render_template('forgot_password.html')
+    
+    return render_template('forgot_password.html')
+
+@app.route('/reset_password/<token>', methods=['GET', 'POST'])
+def reset_password(token):
+    try:
+        conn = sqlite3.connect('dadaal.db')
+        cursor = conn.cursor()
+        
+        # Check if token is valid and not expired
+        cursor.execute('''
+            SELECT t.id, t.user_id, u.email, u.name
+            FROM password_reset_tokens t
+            JOIN users u ON t.user_id = u.id
+            WHERE t.token = ? AND t.expires_at > ? AND t.used = 0
+        ''', (token, datetime.now()))
+        
+        token_data = cursor.fetchone()
+        
+        if not token_data:
+            flash('Password reset link-ku wuu dhacay ama waa la isticmaalay.')
+            conn.close()
+            return redirect(url_for('login'))
+        
+        if request.method == 'POST':
+            new_password = request.form.get('password')
+            confirm_password = request.form.get('confirm_password')
+            
+            if not new_password or len(new_password) < 8:
+                flash('Password-ku waa inuu ka badan yahay 8 xaraf.')
+                return render_template('reset_password.html', token=token)
+            
+            if new_password != confirm_password:
+                flash('Password-yada ma isku mid aha.')
+                return render_template('reset_password.html', token=token)
+            
+            # Update password
+            password_hash = hash_password(new_password)
+            cursor.execute('UPDATE users SET password_hash = ? WHERE id = ?', 
+                         (password_hash, token_data[1]))
+            
+            # Mark token as used
+            cursor.execute('UPDATE password_reset_tokens SET used = 1 WHERE id = ?', 
+                         (token_data[0],))
+            
+            conn.commit()
+            conn.close()
+            
+            flash('Password-kaaga si guul leh ayaa loo beddelay! Hadda gal akoonkaaga.')
+            return redirect(url_for('login'))
+        
+        conn.close()
+        return render_template('reset_password.html', token=token, user_name=token_data[3])
+        
+    except Exception as e:
+        flash('Khalad ayaa dhacay. Fadlan isku day mar kale.')
+        print(f"Reset password error: {e}")
+        return redirect(url_for('login'))
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
