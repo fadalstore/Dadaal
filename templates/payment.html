@@ -185,7 +185,13 @@
     <!-- Hero Section -->
     <section class="payment-hero">
         <h1 class="payment-title">💳 Lacag shubasho</h1>
-        <p class="payment-subtitle">Shubo lacag si aad u bilaawdo dakhliga</p>
+        {% if request.args.get('type') == 'premium' %}
+            <div style="background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                <h3>⭐ Premium Upgrade</h3>
+                <p>Waxaad bixinaysaa ${{ request.args.get('amount', '19.99') }}/month Premium membership-ka</p>
+            </div>
+        {% endif %}
+        <p>Ku dar lacag akoonkaaga si aad u bilowdo dakhliga</p>
     </section>
 
     <!-- Payment Form -->

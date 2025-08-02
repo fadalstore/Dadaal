@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="so">
 <head>
@@ -10,7 +9,7 @@
 <body>
     <div class="container">
         <h1>⭐ Premium Account</h1>
-        
+
         <div class="premium-features">
             <h3>Upgrade to Premium - Only $10/month!</h3>
             <ul class="feature-list">
@@ -22,14 +21,14 @@
                 <li>Monthly $20 Bonus</li>
                 <li>VIP Referral Program (10x earnings)</li>
             </ul>
-            
+
             <div style="text-align: center; margin-top: 30px;">
-                <button onclick="upgradeToPremium()" style="background: linear-gradient(45deg, #FFD700, #FFA500); color: black; padding: 15px 30px; font-size: 18px; border: none; border-radius: 25px; cursor: pointer;">
+                <a href="/payment?type=premium&amount=10" style="background: linear-gradient(45deg, #FFD700, #FFA500); color: black; padding: 15px 30px; font-size: 18px; border: none; border-radius: 25px; cursor: pointer; text-decoration: none;">
                     🚀 Upgrade Now - $10/month
-                </button>
+                </a>
             </div>
         </div>
-        
+
         <div class="content">
             <h3>💎 Premium Members Earn More:</h3>
             <div class="earnings-stats">
@@ -47,14 +46,14 @@
                 </div>
             </div>
         </div>
-        
+
         <script>
-            function upgradeToPremium() {
-                alert('Redirecting to PayPal/Stripe payment...');
-                // Here you would integrate with payment processor
-            }
+            // Remove the redirect script that was causing issues, link directly to payment
+            document.addEventListener('DOMContentLoaded', function() {
+                console.log('Premium page loaded successfully');
+            });
         </script>
-        
+
         <br>
         <div style="text-align: center;">
             <a href="/">Ku noqo bogga hore</a>
