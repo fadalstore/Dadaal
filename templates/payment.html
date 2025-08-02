@@ -189,7 +189,7 @@
     <div class="payment-container">
         <a href="/" class="back-link">← Ku noqo bogga hore</a>
         
-        <form method="POST">
+        <form method="POST" id="paymentForm">
             <div class="form-section">
                 <h3 class="section-title">💰 Qadarka lacagta ($):</h3>
                 <input type="number" name="amount" class="amount-input" placeholder="Gali qadarka lacagta" min="1" required>
@@ -197,16 +197,17 @@
             
             <div class="form-section">
                 <h3 class="section-title">📱 Habka lacag shubasho:</h3>
+                <input type="hidden" name="payment_method" id="payment_method" value="mobile_money">
                 <div class="payment-methods">
-                    <div class="method-card active">
+                    <div class="method-card active" data-method="mobile_money">
                         <div class="method-icon">📱</div>
                         <div>Mobile Money</div>
                     </div>
-                    <div class="method-card">
+                    <div class="method-card" data-method="credit_card">
                         <div class="method-icon">💳</div>
                         <div>Credit Card</div>
                     </div>
-                    <div class="method-card">
+                    <div class="method-card" data-method="bank_transfer">
                         <div class="method-icon">🏦</div>
                         <div>Bank Transfer</div>
                     </div>
@@ -258,7 +259,34 @@
             card.addEventListener('click', function() {
                 document.querySelectorAll('.method-card').forEach(c => c.classList.remove('active'));
                 this.classList.add('active');
+                
+                // Update hidden input with selected method
+                const method = this.getAttribute('data-method');
+                document.getElementById('payment_method').value = method;
             });
+        });
+        
+        // Form validation
+        document.getElementById('paymentForm').addEventListener('submit', function(e) {
+            const amount = document.querySelector('input[name="amount"]').value;
+            const phone = document.querySelector('input[name="phone"]').value;
+            
+            if (!amount || amount <= 0) {
+                alert('Fadlan geli lacag sax ah.');
+                e.preventDefault();
+                return;
+            }
+            
+            if (!phone) {
+                alert('Fadlan geli nambarka telefoonka.');
+                e.preventDefault();
+                return;
+            }
+            
+            // Show loading state
+            const btn = document.querySelector('.payment-btn');
+            btn.innerHTML = '⏳ Waa la processing...';
+            btn.disabled = true;
         });
     </script>
 </body>

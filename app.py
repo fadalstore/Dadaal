@@ -271,12 +271,53 @@ def dashboard():
                          referral_stats=referral_stats)
 
 @app.route('/payment', methods=['GET', 'POST'])
+@login_required
 def payment():
     if request.method == 'POST':
         amount = float(request.form.get('amount', 0))
+        phone = sanitize_input(request.form.get('phone', ''))
+        payment_method = sanitize_input(request.form.get('payment_method', 'mobile_money'))
+        
+        if amount <= 0:
+            flash('Fadlan geli lacag sax ah.')
+            return redirect(url_for('payment'))
+        
+        if not phone:
+            flash('Fadlan geli nambarka telefoonka.')
+            return redirect(url_for('payment'))
+        
+        # Calculate commission (5% of payment)
+        commission = amount * 0.05
+        
+        # Save payment transaction to database
+        conn = sqlite3.connect('dadaal.db')
+        cursor = conn.cursor()
+        
+        # Generate unique reference ID
+        reference_id = f"PAY-{secrets.token_hex(8).upper()}"
+        
+        # Insert payment transaction
+        cursor.execute('''
+            INSERT INTO transactions (user_id, amount, type, status, description, reference_id)
+            VALUES (?, ?, 'earning', 'completed', ?, ?)
+        ''', (session['user_id'], commission, f'Commission waxaa laga helay lacag shubasho ${amount} via {payment_method}', reference_id))
+        
+        # Update user's total earnings
+        cursor.execute('''
+            UPDATE users SET total_earnings = total_earnings + ?
+            WHERE id = ?
+        ''', (commission, session['user_id']))
+        
+        conn.commit()
+        conn.close()
+        
+        # Update global earnings
         global total_earnings
-        total_earnings += amount * 0.05  # 5% commission
+        total_earnings += commission
+        
+        flash(f'Guul! Lacagtaada ${amount} si guul leh ayaa loo aqbalay. Commission ${commission:.2f} ayaa lagugu daray.')
         return redirect(url_for('thankyou'))
+    
     return render_template('payment.html')
 
 
