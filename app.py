@@ -624,6 +624,50 @@ def track_share():
 def premium():
     return render_template('premium.html')
 
+@app.route('/process_premium', methods=['POST'])
+@login_required
+def process_premium():
+    try:
+        plan = request.form.get('plan')
+        amount = float(request.form.get('amount'))
+        
+        # Calculate premium duration
+        if plan == 'monthly':
+            premium_days = 30
+        else:  # yearly
+            premium_days = 365
+        
+        # Calculate premium expiry date
+        premium_until = datetime.now() + timedelta(days=premium_days)
+        
+        # Update user's premium status
+        conn = sqlite3.connect('dadaal.db')
+        cursor = conn.cursor()
+        
+        # Generate transaction reference
+        reference_id = f"PREM-{secrets.token_hex(8).upper()}"
+        
+        # Insert premium transaction
+        cursor.execute('''
+            INSERT INTO transactions (user_id, amount, type, status, description, reference_id)
+            VALUES (?, ?, 'premium', 'completed', ?, ?)
+        ''', (session['user_id'], amount, f'Premium subscription - {plan} plan', reference_id))
+        
+        # Update user's premium status
+        cursor.execute('''
+            UPDATE users SET premium_until = ?
+            WHERE id = ?
+        ''', (premium_until.date(), session['user_id']))
+        
+        conn.commit()
+        conn.close()
+        
+        return {'success': True, 'message': f'Premium {plan} plan activated until {premium_until.strftime("%Y-%m-%d")}'}
+        
+    except Exception as e:
+        print(f"Premium processing error: {e}")
+        return {'success': False, 'error': 'Payment processing failed'}
+
 @app.route('/affiliate')
 def affiliate():
     return render_template('affiliate.html')

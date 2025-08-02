@@ -6,7 +6,7 @@
     <meta name="google-adsense-account" content="ca-pub-6630634320422572">
     <meta name="google-site-verification" content="4274869927849" />
     <title>Dadaal App - Bogga Hore</title>
-    
+
     <!-- Google AdSense Verification and Auto Ads -->
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6630634320422572"
          crossorigin="anonymous"></script>
@@ -287,6 +287,39 @@
                 });
             }
         });
+
+        function shareOn(platform) {
+            try {
+                const referralCode = "DADAAL-{{ range(1000, 9999) | random }}";
+                const shareUrl = window.location.origin;
+                const shareText = "Ku soo biir Dadaal App oo ka samayso lacag online! Code: " + referralCode;
+
+                let url = '';
+                switch(platform) {
+                    case 'whatsapp':
+                        url = `https://wa.me/?text=${encodeURIComponent(shareText + ' ' + shareUrl)}`;
+                        console.log("Shared on whatsapp");
+                        break;
+                    case 'telegram':
+                        url = `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`;
+                        break;
+                    case 'twitter':
+                        url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`;
+                        break;
+                    case 'facebook':
+                        url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
+                        break;
+                }
+
+                if (url) {
+                    window.open(url, '_blank', 'width=600,height=400');
+                    // Track the share
+                    trackShare(platform, referralCode);
+                }
+            } catch (error) {
+                console.error('Share error:', error);
+            }
+        }
     </script>
 </body>
 </html>
