@@ -210,11 +210,11 @@
                 <div class="payment-methods">
                     <div class="method-card active" data-method="mobile_money">
                         <div class="method-icon">📱</div>
-                        <div>Mobile Money</div>
+                        <div>Mobile Money (EVC+/ZAAD)</div>
                     </div>
                     <div class="method-card" data-method="credit_card">
                         <div class="method-icon">💳</div>
-                        <div>Credit Card</div>
+                        <div>Credit Card (Stripe)</div>
                     </div>
                     <div class="method-card" data-method="bank_transfer">
                         <div class="method-icon">🏦</div>
@@ -223,20 +223,48 @@
                 </div>
             </div>
 
-            <div class="form-section">
-                <h3 class="section-title">📞 Nambarada telefoonka:</h3>
-                <input type="tel" name="phone" class="phone-input" placeholder="252-XX-XXXXXXX" required>
+            <!-- Mobile Money Form -->
+            <div class="form-section" id="mobile-money-form">
+                <h3 class="section-title">📞 Nambarada Mobile Money:</h3>
+                <input type="tel" name="phone" class="phone-input" placeholder="252-XX-XXXXXXX (EVC+ ama ZAAD)" required>
+                <small style="color: #666;">Somalia Mobile Money (EVC PLUS, ZAAD Service)</small>
+            </div>
+
+            <!-- Credit Card Form -->
+            <div class="form-section" id="credit-card-form" style="display: none;">
+                <h3 class="section-title">💳 Credit Card Information:</h3>
+                <div id="stripe-card-element" style="padding: 15px; border: 2px solid #e1e5e9; border-radius: 12px; margin-bottom: 15px;">
+                    <!-- Stripe Elements will create form elements here -->
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <input type="text" name="cardholder_name" placeholder="Magaca Kaarka" class="phone-input">
+                    <input type="email" name="billing_email" placeholder="Email" class="phone-input">
+                </div>
+            </div>
+
+            <!-- Bank Transfer Form -->
+            <div class="form-section" id="bank-transfer-form" style="display: none;">
+                <h3 class="section-title">🏦 Bank Transfer Information:</h3>
+                <input type="text" name="bank_account" placeholder="Bank Account Number" class="phone-input">
+                <input type="text" name="bank_name" placeholder="Bank Name" class="phone-input">
+                <small style="color: #666;">Bank transfer will be processed within 1-3 business days</small>
             </div>
 
             <div class="security-info">
-                <h4>🔒 Ammaan</h4>
-                <p>Dhammaan macaamiishaada way ammaan yihiin oo waxay u maraan SSL encryption. Ma keydineyno xogta kaararka.</p>
+                <h4>🔒 Ammaan & Real Payment Processing</h4>
+                <p>✅ SSL Encryption - Dhammaan macaamiishada way ammaan yihiin<br>
+                   ✅ Real Payment Gateway - Stripe & Mobile Money APIs<br>
+                   ✅ PCI Compliant - Ma keydineyno xogta kaararka<br>
+                   ✅ Instant Processing - Lacagta si dhaqso leh ayaa loo processing gareeyaa</p>
             </div>
 
             <button type="submit" class="payment-btn">
-                🚀 SHUBO LACAGTA
+                🚀 BIXDI LACAGTA (REAL PAYMENT)
             </button>
         </form>
+
+        <!-- Stripe JavaScript -->
+        <script src="https://js.stripe.com/v3/"></script>
     </div>
 
     <!-- Footer -->
@@ -263,6 +291,11 @@
     </footer>
 
     <script>
+        // Initialize Stripe
+        const stripe = Stripe('pk_test_YOUR_STRIPE_PUBLISHABLE_KEY'); // Replace with your actual key
+        const elements = stripe.elements();
+        let cardElement;
+
         // Payment method selection
         document.querySelectorAll('.method-card').forEach(card => {
             card.addEventListener('click', function() {
@@ -272,30 +305,120 @@
                 // Update hidden input with selected method
                 const method = this.getAttribute('data-method');
                 document.getElementById('payment_method').value = method;
+
+                // Show/hide relevant forms
+                document.getElementById('mobile-money-form').style.display = 'none';
+                document.getElementById('credit-card-form').style.display = 'none';
+                document.getElementById('bank-transfer-form').style.display = 'none';
+
+                if (method === 'mobile_money') {
+                    document.getElementById('mobile-money-form').style.display = 'block';
+                } else if (method === 'credit_card') {
+                    document.getElementById('credit-card-form').style.display = 'block';
+                    initializeStripe();
+                } else if (method === 'bank_transfer') {
+                    document.getElementById('bank-transfer-form').style.display = 'block';
+                }
             });
         });
 
-        // Form validation
-        document.getElementById('paymentForm').addEventListener('submit', function(e) {
+        function initializeStripe() {
+            if (!cardElement) {
+                cardElement = elements.create('card', {
+                    style: {
+                        base: {
+                            fontSize: '16px',
+                            color: '#424770',
+                            '::placeholder': {
+                                color: '#aab7c4',
+                            },
+                        },
+                    },
+                });
+                cardElement.mount('#stripe-card-element');
+            }
+        }
+
+        // Form validation and submission
+        document.getElementById('paymentForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
             const amount = document.querySelector('input[name="amount"]').value;
-            const phone = document.querySelector('input[name="phone"]').value;
+            const paymentMethod = document.getElementById('payment_method').value;
 
             if (!amount || amount <= 0) {
                 alert('Fadlan geli lacag sax ah.');
-                e.preventDefault();
-                return;
-            }
-
-            if (!phone) {
-                alert('Fadlan geli nambarka telefoonka.');
-                e.preventDefault();
                 return;
             }
 
             // Show loading state
             const btn = document.querySelector('.payment-btn');
+            const originalText = btn.innerHTML;
             btn.innerHTML = '⏳ Waa la processing...';
             btn.disabled = true;
+
+            try {
+                if (paymentMethod === 'credit_card' && cardElement) {
+                    // Handle Stripe payment
+                    const {error, paymentMethod: stripePaymentMethod} = await stripe.createPaymentMethod({
+                        type: 'card',
+                        card: cardElement,
+                        billing_details: {
+                            name: document.querySelector('input[name="cardholder_name"]').value,
+                            email: document.querySelector('input[name="billing_email"]').value,
+                        },
+                    });
+
+                    if (error) {
+                        alert('Card validation error: ' + error.message);
+                        btn.innerHTML = originalText;
+                        btn.disabled = false;
+                        return;
+                    }
+
+                    // Add Stripe payment method ID to form
+                    const hiddenInput = document.createElement('input');
+                    hiddenInput.type = 'hidden';
+                    hiddenInput.name = 'stripe_payment_method_id';
+                    hiddenInput.value = stripePaymentMethod.id;
+                    this.appendChild(hiddenInput);
+                }
+
+                // Validate other payment methods
+                if (paymentMethod === 'mobile_money') {
+                    const phone = document.querySelector('input[name="phone"]').value;
+                    if (!phone) {
+                        alert('Fadlan geli nambarka telefoonka.');
+                        btn.innerHTML = originalText;
+                        btn.disabled = false;
+                        return;
+                    }
+                }
+
+                // Submit the form
+                this.submit();
+
+            } catch (error) {
+                console.error('Payment error:', error);
+                alert('Payment processing error. Please try again.');
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        });
+
+        // Real-time amount validation
+        document.querySelector('input[name="amount"]').addEventListener('input', function() {
+            const amount = parseFloat(this.value);
+            const commission = amount * 0.05;
+            
+            if (amount > 0) {
+                const infoDiv = document.querySelector('.security-info p');
+                infoDiv.innerHTML = `✅ SSL Encryption - Dhammaan macaamiishada way ammaan yihiin<br>
+                   ✅ Real Payment Gateway - Stripe & Mobile Money APIs<br>
+                   ✅ PCI Compliant - Ma keydineyno xogta kaararka<br>
+                   ✅ Instant Processing - Lacagta si dhaqso leh ayaa loo processing gareeyaa<br>
+                   <strong>💰 Aad heli doontaa: $${commission.toFixed(2)} commission (5% of $${amount})</strong>`;
+            }
         });
     </script>
 </body>
