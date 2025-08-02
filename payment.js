@@ -1,1 +1,0 @@
-<!-- payment.js content -->

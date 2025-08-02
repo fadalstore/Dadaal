@@ -403,6 +403,11 @@ def dashboard():
 @app.route('/payment', methods=['GET', 'POST'])
 @login_required
 def payment():
+    # Check if this is a premium payment
+    is_premium = request.args.get('type') == 'premium'
+    premium_plan = request.args.get('plan', 'monthly')
+    premium_amount = request.args.get('amount', '19.99')
+    
     if request.method == 'POST':
         amount = float(request.form.get('amount', 0))
         phone = sanitize_input(request.form.get('phone', ''))
@@ -437,36 +442,61 @@ def payment():
                 payment_success = payment_response.get('success', False)
             
             if payment_success:
-                # Calculate commission (5% of payment)
-                commission = amount * 0.05
-                
-                # Save payment transaction to database
                 conn = sqlite3.connect('dadaal.db')
                 cursor = conn.cursor()
                 
                 # Generate unique reference ID
                 reference_id = payment_response.get('transaction_id', f"PAY-{secrets.token_hex(8).upper()}")
                 
-                # Insert payment transaction
-                cursor.execute('''
-                    INSERT INTO transactions (user_id, amount, type, status, description, reference_id)
-                    VALUES (?, ?, 'earning', 'completed', ?, ?)
-                ''', (session['user_id'], commission, f'Commission waxaa laga helay lacag shubasho ${amount} via {payment_method}', reference_id))
-                
-                # Update user's total earnings
-                cursor.execute('''
-                    UPDATE users SET total_earnings = total_earnings + ?
-                    WHERE id = ?
-                ''', (commission, session['user_id']))
+                # Check if this is a premium payment
+                if is_premium:
+                    # Calculate premium duration
+                    if premium_plan == 'monthly':
+                        premium_days = 30
+                    else:  # yearly
+                        premium_days = 365
+                    
+                    # Calculate premium expiry date
+                    premium_until = datetime.now() + timedelta(days=premium_days)
+                    
+                    # Insert premium transaction
+                    cursor.execute('''
+                        INSERT INTO transactions (user_id, amount, type, status, description, reference_id)
+                        VALUES (?, ?, 'premium', 'completed', ?, ?)
+                    ''', (session['user_id'], amount, f'Premium subscription - {premium_plan} plan', reference_id))
+                    
+                    # Update user's premium status
+                    cursor.execute('''
+                        UPDATE users SET premium_until = ?
+                        WHERE id = ?
+                    ''', (premium_until.date(), session['user_id']))
+                    
+                    flash(f'Guul! Premium {premium_plan} plan waa la activation gareeyay ilaa {premium_until.strftime("%Y-%m-%d")}!')
+                else:
+                    # Regular payment - Calculate commission (5% of payment)
+                    commission = amount * 0.05
+                    
+                    # Insert payment transaction
+                    cursor.execute('''
+                        INSERT INTO transactions (user_id, amount, type, status, description, reference_id)
+                        VALUES (?, ?, 'earning', 'completed', ?, ?)
+                    ''', (session['user_id'], commission, f'Commission waxaa laga helay lacag shubasho ${amount} via {payment_method}', reference_id))
+                    
+                    # Update user's total earnings
+                    cursor.execute('''
+                        UPDATE users SET total_earnings = total_earnings + ?
+                        WHERE id = ?
+                    ''', (commission, session['user_id']))
+                    
+                    # Update global earnings
+                    global total_earnings
+                    total_earnings += commission
+                    
+                    flash(f'Guul! Lacagtaada ${amount} si guul leh ayaa loo aqbalay. Commission ${commission:.2f} ayaa lagugu daray.')
                 
                 conn.commit()
                 conn.close()
                 
-                # Update global earnings
-                global total_earnings
-                total_earnings += commission
-                
-                flash(f'Guul! Lacagtaada ${amount} si guul leh ayaa loo aqbalay. Commission ${commission:.2f} ayaa lagugu daray.')
                 return redirect(url_for('thankyou'))
             else:
                 error_msg = payment_response.get('error', 'Payment failed')
@@ -1059,42 +1089,13 @@ def process_premium():
         plan = request.form.get('plan')
         amount = float(request.form.get('amount'))
         
-        # Calculate premium duration
-        if plan == 'monthly':
-            premium_days = 30
-        else:  # yearly
-            premium_days = 365
-        
-        # Calculate premium expiry date
-        premium_until = datetime.now() + timedelta(days=premium_days)
-        
-        # Update user's premium status
-        conn = sqlite3.connect('dadaal.db')
-        cursor = conn.cursor()
-        
-        # Generate transaction reference
-        reference_id = f"PREM-{secrets.token_hex(8).upper()}"
-        
-        # Insert premium transaction
-        cursor.execute('''
-            INSERT INTO transactions (user_id, amount, type, status, description, reference_id)
-            VALUES (?, ?, 'premium', 'completed', ?, ?)
-        ''', (session['user_id'], amount, f'Premium subscription - {plan} plan', reference_id))
-        
-        # Update user's premium status
-        cursor.execute('''
-            UPDATE users SET premium_until = ?
-            WHERE id = ?
-        ''', (premium_until.date(), session['user_id']))
-        
-        conn.commit()
-        conn.close()
-        
-        return {'success': True, 'message': f'Premium {plan} plan activated until {premium_until.strftime("%Y-%m-%d")}'}
+        # Redirect to payment page with premium parameters
+        return redirect(url_for('payment', type='premium', plan=plan, amount=amount))
         
     except Exception as e:
         print(f"Premium processing error: {e}")
-        return {'success': False, 'error': 'Payment processing failed'}
+        flash('Khalad ayaa dhacay premium processing. Fadlan isku day mar kale.')
+        return redirect(url_for('premium'))
 
 @app.route('/affiliate')
 def affiliate():

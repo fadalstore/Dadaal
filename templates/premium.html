@@ -45,23 +45,303 @@
                     <div class="stat-label">Bonus Multiplier</div>
                 </div>
                 <div class="stat-box">
-                    <div class="stat-value">24/7</div>
-                    <div class="stat-label">Premium Support</div>
-                </div>
+                    <!DOCTYPE html>
+<html lang="so">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="google-adsense-account" content="ca-pub-6630634320422572">
+    <title>Premium Account - Dadaal App</title>
+    
+    <!-- Google AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6630634320422572"
+         crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .premium-hero {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 60px 20px;
+            text-align: center;
+        }
+
+        .premium-container {
+            max-width: 1200px;
+            margin: -80px auto 40px;
+            background: white;
+            border-radius: 25px;
+            padding: 50px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.1);
+            position: relative;
+            z-index: 10;
+        }
+
+        .plans-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin: 40px 0;
+        }
+
+        .plan-card {
+            background: #f8f9fa;
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            position: relative;
+            transition: all 0.3s ease;
+            border: 3px solid transparent;
+        }
+
+        .plan-card:hover {
+            transform: translateY(-10px);
+            border-color: #f5576c;
+            box-shadow: 0 20px 40px rgba(245, 87, 108, 0.2);
+        }
+
+        .plan-popular {
+            border-color: #f5576c;
+            background: linear-gradient(135deg, #fff 0%, #ffeaf1 100%);
+        }
+
+        .plan-popular::before {
+            content: '⭐ MOST POPULAR';
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #f5576c;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 25px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .plan-price {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #f5576c;
+            margin: 20px 0;
+        }
+
+        .plan-features {
+            list-style: none;
+            padding: 0;
+            margin: 30px 0;
+        }
+
+        .plan-features li {
+            padding: 12px 0;
+            border-bottom: 1px solid #e1e5e9;
+            color: #555;
+        }
+
+        .plan-features li:last-child {
+            border-bottom: none;
+        }
+
+        .plan-features li::before {
+            content: '✅ ';
+            color: #27ae60;
+            font-weight: bold;
+        }
+
+        .upgrade-btn {
+            background: linear-gradient(135deg, #f5576c 0%, #f093fb 100%);
+            color: white;
+            border: none;
+            padding: 18px 40px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .upgrade-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(245, 87, 108, 0.3);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 30px;
+            margin: 50px 0;
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+        }
+
+        .stat-value {
+            font-size: 3rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body class="news-layout">
+    <!-- Header -->
+    <header class="top-header">
+        <div class="header-container">
+            <div class="logo-section">
+                <div class="hamburger-menu">☰</div>
+                <h1 class="site-logo">DADAAL APP</h1>
+            </div>
+            <div class="header-actions">
+                {% if session.user_id %}
+                    <a href="/dashboard" class="login-btn">Dashboard</a>
+                    <a href="/logout" class="register-btn">Bax</a>
+                {% else %}
+                    <a href="/login" class="login-btn">Gal</a>
+                    <a href="/register" class="register-btn">Diiwaan geli</a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="main-nav">
+        <div class="nav-container">
+            <ul class="nav-tabs">
+                <li class="nav-tab"><a href="/">Hore</a></li>
+                <li class="nav-tab"><a href="/payment">Lacag shubo</a></li>
+                <li class="nav-tab"><a href="/dashboard">Dashboard</a></li>
+                <li class="nav-tab"><a href="/gifts">Hadiyado</a></li>
+                <li class="nav-tab"><a href="/referral">Invite Friends</a></li>
+                <li class="nav-tab active"><a href="/premium">Premium</a></li>
+                <li class="nav-tab"><a href="/earnings">Dakhli</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="premium-hero">
+        <h1 class="premium-title">⭐ Premium Membership</h1>
+        <p class="premium-subtitle">Hel features dheeraad ah oo kordhiya dakhligaaga</p>
+    </section>
+
+    <!-- Premium Content -->
+    <div class="premium-container">
+        <div class="plans-grid">
+            <!-- Monthly Plan -->
+            <div class="plan-card">
+                <h3>📅 Bishii walba</h3>
+                <div class="plan-price">$19.99</div>
+                <ul class="plan-features">
+                    <li>Unlimited earnings</li>
+                    <li>Priority customer support</li>
+                    <li>Advanced analytics dashboard</li>
+                    <li>Exclusive referral bonuses</li>
+                    <li>Early access to new features</li>
+                    <li>No withdrawal limits</li>
+                </ul>
+                <form method="POST" action="/process_premium">
+                    <input type="hidden" name="plan" value="monthly">
+                    <input type="hidden" name="amount" value="19.99">
+                    <button type="submit" class="upgrade-btn">🚀 UPGRADE HADDA</button>
+                </form>
+            </div>
+
+            <!-- Yearly Plan (Popular) -->
+            <div class="plan-card plan-popular">
+                <h3>🗓️ Sannadkii walba</h3>
+                <div class="plan-price">$199.99</div>
+                <p style="color: #27ae60; font-weight: bold;">Kaydi $39.89 (17% discount)</p>
+                <ul class="plan-features">
+                    <li>Unlimited earnings</li>
+                    <li>24/7 VIP customer support</li>
+                    <li>Advanced analytics + AI insights</li>
+                    <li>50% higher referral bonuses</li>
+                    <li>Beta features access</li>
+                    <li>No withdrawal limits</li>
+                    <li>Monthly strategy consultations</li>
+                    <li>Custom referral codes</li>
+                </ul>
+                <form method="POST" action="/process_premium">
+                    <input type="hidden" name="plan" value="yearly">
+                    <input type="hidden" name="amount" value="199.99">
+                    <button type="submit" class="upgrade-btn">🏆 UPGRADE HADDA (SAVE 17%)</button>
+                </form>
             </div>
         </div>
 
-        <script>
-            // Remove the redirect script that was causing issues, link directly to payment
-            document.addEventListener('DOMContentLoaded', function() {
-                console.log('Premium page loaded successfully');
-            });
-        </script>
+        <!-- Stats Section -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value">3x</div>
+                <div class="stat-label">Faster Earnings</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">50%</div>
+                <div class="stat-label">Higher Commissions</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">24/7</div>
+                <div class="stat-label">Premium Support</div>
+            </div>
+        </div>
 
-        <br>
-        <div style="text-align: center;">
-            <a href="/">Ku noqo bogga hore</a>
+        <div style="text-align: center; margin-top: 40px;">
+            <p style="color: #666; font-size: 1.1rem;">💰 Premium members waxay heli karaan ilaa $1000+ bishii walba!</p>
+            <a href="/" style="color: #f5576c; text-decoration: none; font-weight: bold;">← Ku noqo bogga hore</a>
         </div>
     </div>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="footer-container">
+            <div class="footer-sections">
+                <div class="footer-section">
+                    <h4>Dadaal App</h4>
+                    <p>Nidaamka ugu fiican ee lacag samynta online-ka ah</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Links</h4>
+                    <ul>
+                        <li><a href="/about">Naga</a></li>
+                        <li><a href="/terms">Shuruudaha</a></li>
+                        <li><a href="/contact">Contact</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>© 2025 Dadaal App. Dhamaan xuquuqda way dhowran yihiin.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Premium page loaded successfully');
+            
+            // Handle form submissions
+            document.querySelectorAll('form').forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const plan = this.querySelector('input[name="plan"]').value;
+                    const amount = this.querySelector('input[name="amount"]').value;
+                    
+                    // Redirect to payment page with premium details
+                    window.location.href = `/payment?type=premium&plan=${plan}&amount=${amount}`;
+                });
+            });
+        });
+    </script>
 </body>
+</html>
 </html>
