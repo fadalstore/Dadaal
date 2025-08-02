@@ -373,35 +373,44 @@ def register():
         password_hash = hash_password(password)
         user_referral_code = f"DADAAL-{random.randint(10000, 99999)}"
         
-        cursor.execute('''
-            INSERT INTO users (name, email, phone, password_hash, referral_code, referrer_id)
-            VALUES (?, ?, ?, ?, ?, ?)
-        ''', (name, email, phone, password_hash, user_referral_code, referrer_id))
-        
-        user_id = cursor.lastrowid
-        
-        # Create referral record if applicable
-        if referrer_id:
+        try:
             cursor.execute('''
-                INSERT INTO referrals (referrer_id, referred_id, commission_earned)
-                VALUES (?, ?, ?)
-            ''', (referrer_id, user_id, 5.00))
+                INSERT INTO users (name, email, phone, password_hash, referral_code, referrer_id)
+                VALUES (?, ?, ?, ?, ?, ?)
+            ''', (name, email, phone, password_hash, user_referral_code, referrer_id))
             
-            # Add referral bonus to referrer
-            cursor.execute('''
-                UPDATE users SET total_earnings = total_earnings + 5.00 
-                WHERE id = ?
-            ''', (referrer_id,))
-        
-        conn.commit()
-        conn.close()
-        
-        session['user_id'] = user_id
-        session['user_name'] = name
-        session.permanent = True
-        
-        flash('Akoonkaaga si guul leh ayaa loo sameeyay!')
-        return redirect(url_for('dashboard'))
+            user_id = cursor.lastrowid
+            
+            # Create referral record if applicable
+            if referrer_id:
+                cursor.execute('''
+                    INSERT INTO referrals (referrer_id, referred_id, commission_earned)
+                    VALUES (?, ?, ?)
+                ''', (referrer_id, user_id, 5.00))
+                
+                # Add referral bonus to referrer
+                cursor.execute('''
+                    UPDATE users SET total_earnings = total_earnings + 5.00 
+                    WHERE id = ?
+                ''', (referrer_id,))
+            
+            conn.commit()
+            
+            # Set session
+            session['user_id'] = user_id
+            session['user_name'] = name
+            session.permanent = True
+            
+            conn.close()
+            
+            flash('Akoonkaaga si guul leh ayaa loo sameeyay! Hadda waxaad gali kartaa dashboard-ka.')
+            return redirect(url_for('login'))
+            
+        except Exception as e:
+            conn.rollback()
+            conn.close()
+            flash(f'Khalad ayaa dhacay akoonka samayniisa: {str(e)}')
+            return redirect(url_for('register'))
     
     return render_template('register.html')
 
