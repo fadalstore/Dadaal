@@ -449,6 +449,16 @@ def terms():
 def privacy():
     return render_template('privacy.html')
 
+@app.route('/ads.txt')
+def ads_txt():
+    return "google.com, pub-6630634320422572, DIRECT, f08c47fec0942fa0", 200, {'Content-Type': 'text/plain'}
+
+@app.route('/robots.txt')
+def robots_txt():
+    return """User-agent: *
+Allow: /
+Sitemap: https://dadaal.onrender.com/sitemap.xml""", 200, {'Content-Type': 'text/plain'}
+
 @app.route('/contact', methods=['GET', 'POST'])
 def contact():
     if request.method == 'POST':
