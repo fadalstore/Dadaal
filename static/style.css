@@ -62,19 +62,43 @@ body {
 }
 
 .login-btn, .register-btn {
-    background: transparent;
-    border: 1px solid white;
-    color: white;
-    padding: 8px 16px;
-    border-radius: 4px;
-    cursor: pointer;
+    padding: 10px 20px;
+    border-radius: 25px;
+    text-decoration: none;
+    font-weight: 700;
     font-size: 14px;
     transition: all 0.3s ease;
+    cursor: pointer;
+    display: inline-block;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
-.login-btn:hover, .register-btn:hover {
-    background: white;
-    color: #bb1919;
+.login-btn {
+    background: rgba(255,255,255,0.15);
+    color: white;
+    border: 2px solid rgba(255,255,255,0.3);
+    backdrop-filter: blur(10px);
+}
+
+.login-btn:hover {
+    background: rgba(255,255,255,0.25);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255,255,255,0.2);
+    color: white;
+}
+
+.register-btn {
+    background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
+    color: white;
+    border: 2px solid transparent;
+}
+
+.register-btn:hover {
+    background: linear-gradient(135deg, #ee5a6f, #ff6b6b);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(238, 90, 111, 0.4);
+    color: white;
 }
 
 /* Navigation Styles */
@@ -406,19 +430,19 @@ body {
     .content-grid {
         grid-template-columns: 1fr;
     }
-    
+
     .hero-title {
         font-size: 2rem;
     }
-    
+
     .hero-stats {
         gap: 20px;
     }
-    
+
     .nav-tabs {
         justify-content: flex-start;
     }
-    
+
     .main-nav.mobile-open {
         position: fixed;
         top: 60px;

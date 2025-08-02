@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="so">
 <head>
@@ -17,8 +16,8 @@
                 <h1 class="site-logo">DADAAL APP</h1>
             </div>
             <div class="header-actions">
-                <button class="login-btn">Gal</button>
-                <button class="register-btn">Diiwaan geli</button>
+                <a href="{{ url_for('login') }}" class="login-btn">GAL</a>
+                <a href="{{ url_for('register') }}" class="register-btn">DIIWAAN GELI</a>
             </div>
         </div>
     </header>
@@ -70,7 +69,7 @@
             <!-- Featured Services -->
             <section class="featured-services">
                 <h3 class="section-title">🚀 Adeegyada Ugu Waaweyn</h3>
-                
+
                 <div class="service-cards">
                     <div class="service-card featured">
                         <div class="card-image">💰</div>
@@ -206,9 +205,59 @@
     </footer>
 
     <script>
-        // Mobile menu toggle
-        document.querySelector('.hamburger-menu').addEventListener('click', function() {
-            document.querySelector('.main-nav').classList.toggle('mobile-open');
+        // Add interactive features
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animate hero section
+            const hero = document.querySelector('.hero');
+            if (hero) {
+                hero.style.opacity = '0';
+                hero.style.transform = 'translateY(30px)';
+                setTimeout(() => {
+                    hero.style.transition = 'all 0.8s ease';
+                    hero.style.opacity = '1';
+                    hero.style.transform = 'translateY(0)';
+                }, 100);
+            }
+
+            // Add hover effects to service cards
+            const cards = document.querySelectorAll('.service-card');
+            cards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-10px) scale(1.02)';
+                });
+
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0) scale(1)';
+                });
+            });
+
+            // Mobile menu toggle
+            const hamburger = document.querySelector('.hamburger-menu');
+            const nav = document.querySelector('.main-nav');
+
+            if (hamburger && nav) {
+                hamburger.addEventListener('click', function() {
+                    nav.classList.toggle('mobile-open');
+                });
+            }
+
+            // Ensure header buttons work properly
+            const loginBtn = document.querySelector('.login-btn');
+            const registerBtn = document.querySelector('.register-btn');
+
+            if (loginBtn) {
+                loginBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    window.location.href = '/login';
+                });
+            }
+
+            if (registerBtn) {
+                registerBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    window.location.href = '/register';
+                });
+            }
         });
     </script>
 </body>
