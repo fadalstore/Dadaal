@@ -79,7 +79,7 @@ def send_reset_email(email, reset_token):
     try:
         # Email configuration - you can use a service like SendGrid, Gmail, etc.
         # For demo purposes, we'll simulate sending
-        reset_link = f"https://{os.environ.get('REPLIT_DEV_DOMAIN', 'localhost:5000')}/reset_password/{reset_token}"
+        reset_link = f"https://dadaal.onrender.com/reset_password/{reset_token}"
         
         # In production, you would actually send an email here
         # For now, we'll just print the reset link
