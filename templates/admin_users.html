@@ -1,0 +1,190 @@
+
+<!DOCTYPE html>
+<html lang="so">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Users Management - Dadaal App Admin</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .admin-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .admin-header {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .users-table {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .table th,
+        .table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e1e8f0;
+            font-size: 14px;
+        }
+        
+        .table th {
+            background: #f8f9fc;
+            font-weight: 600;
+            color: #667eea;
+        }
+        
+        .action-btn {
+            padding: 4px 8px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-right: 5px;
+        }
+        
+        .btn-suspend { background: #dc3545; color: white; }
+        .btn-activate { background: #28a745; color: white; }
+        .btn-delete { background: #dc3545; color: white; }
+        
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .status-active { background: #d4edda; color: #155724; }
+        .status-suspended { background: #f8d7da; color: #721c24; }
+        
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <a href="/admin/dashboard" class="back-link">← Back to Dashboard</a>
+        
+        <div class="admin-header">
+            <h1>👥 Users Management</h1>
+            <p>Maamul dhammaan users-ka app-ka</p>
+        </div>
+
+        <div class="users-table">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Earnings</th>
+                        <th>Referrals</th>
+                        <th>Status</th>
+                        <th>Premium</th>
+                        <th>Joined</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>{{ user[0] }}</td>
+                        <td>{{ user[1] }}</td>
+                        <td>{{ user[2] }}</td>
+                        <td>{{ user[3] or 'N/A' }}</td>
+                        <td>${{ "%.2f"|format(user[4] or 0) }}</td>
+                        <td>{{ user[9] }}</td>
+                        <td>
+                            <span class="status-badge status-{{ user[5] }}">{{ user[5] }}</span>
+                        </td>
+                        <td>{{ user[6] or 'Regular' }}</td>
+                        <td>{{ user[7] }}</td>
+                        <td>
+                            {% if user[5] == 'active' %}
+                                <button class="action-btn btn-suspend" onclick="toggleUserStatus({{ user[0] }}, 'suspended')">
+                                    🚫 Suspend
+                                </button>
+                            {% else %}
+                                <button class="action-btn btn-activate" onclick="toggleUserStatus({{ user[0] }}, 'active')">
+                                    ✅ Activate
+                                </button>
+                            {% endif %}
+                            <button class="action-btn btn-delete" onclick="deleteUser({{ user[0] }})">
+                                🗑️ Delete
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        function toggleUserStatus(userId, newStatus) {
+            if (confirm(`Waxaad rabaa in aad ${newStatus} gareysid user-kan?`)) {
+                fetch('/admin/toggle_user_status', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        user_id: userId,
+                        status: newStatus
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Khalad: ' + data.error);
+                    }
+                });
+            }
+        }
+
+        function deleteUser(userId) {
+            if (confirm('Waxaad rabaa in aad tirtid user-kan? Arrintaani waa mid aan dib u noqon karin!')) {
+                fetch('/admin/delete_user', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        user_id: userId
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Khalad: ' + data.error);
+                    }
+                });
+            }
+        }
+    </script>
+</body>
+</html>

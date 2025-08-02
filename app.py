@@ -245,9 +245,13 @@ def admin_dashboard():
     cursor.execute('SELECT SUM(commission_earned) FROM referrals WHERE status = "completed"')
     affiliate_earnings_db = cursor.fetchone()[0] or 0
     
-    # Get recent users
-    cursor.execute('SELECT name, email, total_earnings, created_at FROM users ORDER BY created_at DESC LIMIT 10')
-    recent_users = cursor.fetchall()
+    # Get all users with detailed info
+    cursor.execute('''
+        SELECT id, name, email, phone, total_earnings, status, premium_until, created_at 
+        FROM users 
+        ORDER BY created_at DESC
+    ''')
+    all_users = cursor.fetchall()
     
     # Get recent transactions
     cursor.execute('''
@@ -265,7 +269,7 @@ def admin_dashboard():
                          new_messages=new_messages,
                          total_earnings=total_earnings_db, 
                          affiliate_earnings=affiliate_earnings_db,
-                         recent_users=recent_users,
+                         all_users=all_users,
                          recent_transactions=recent_transactions)
 
 @app.route('/dashboard')
@@ -671,6 +675,79 @@ def process_premium():
 @app.route('/affiliate')
 def affiliate():
     return render_template('affiliate.html')
+
+@app.route('/admin/toggle_user_status', methods=['POST'])
+@admin_required
+def toggle_user_status():
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id')
+        new_status = data.get('status')
+        
+        if new_status not in ['active', 'suspended']:
+            return {'success': False, 'error': 'Invalid status'}
+        
+        conn = sqlite3.connect('dadaal.db')
+        cursor = conn.cursor()
+        
+        cursor.execute('UPDATE users SET status = ? WHERE id = ?', (new_status, user_id))
+        conn.commit()
+        conn.close()
+        
+        return {'success': True, 'message': f'User status updated to {new_status}'}
+        
+    except Exception as e:
+        print(f"Toggle user status error: {e}")
+        return {'success': False, 'error': str(e)}
+
+@app.route('/admin/delete_user', methods=['POST'])
+@admin_required
+def delete_user():
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id')
+        
+        conn = sqlite3.connect('dadaal.db')
+        cursor = conn.cursor()
+        
+        # Delete user's transactions first (foreign key constraint)
+        cursor.execute('DELETE FROM transactions WHERE user_id = ?', (user_id,))
+        cursor.execute('DELETE FROM referrals WHERE referrer_id = ? OR referred_id = ?', (user_id, user_id))
+        cursor.execute('DELETE FROM affiliate_links WHERE user_id = ?', (user_id,))
+        
+        # Delete the user
+        cursor.execute('DELETE FROM users WHERE id = ?', (user_id,))
+        
+        conn.commit()
+        conn.close()
+        
+        return {'success': True, 'message': 'User deleted successfully'}
+        
+    except Exception as e:
+        print(f"Delete user error: {e}")
+        return {'success': False, 'error': str(e)}
+
+@app.route('/admin/users')
+@admin_required
+def admin_users():
+    conn = sqlite3.connect('dadaal.db')
+    cursor = conn.cursor()
+    
+    # Get all users with detailed information
+    cursor.execute('''
+        SELECT u.id, u.name, u.email, u.phone, u.total_earnings, u.status, 
+               u.premium_until, u.created_at, u.referral_code,
+               COUNT(r.id) as referrals_count
+        FROM users u
+        LEFT JOIN referrals r ON u.id = r.referrer_id AND r.status = 'completed'
+        GROUP BY u.id
+        ORDER BY u.created_at DESC
+    ''')
+    users = cursor.fetchall()
+    
+    conn.close()
+    
+    return render_template('admin_users.html', users=users)
 
 @app.route('/earnings')
 def earnings():
