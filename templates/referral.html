@@ -134,6 +134,50 @@
             margin: 30px auto;
             max-width: 600px;
         }
+        
+        .social-btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 25px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            margin: 5px;
+            font-size: 14px;
+        }
+        
+        .social-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        
+        .whatsapp { background: #25D366; }
+        .facebook { background: #1877F2; }
+        .twitter { background: #1DA1F2; }
+        .telegram { background: #0088CC; }
+        .email { background: #EA4335; }
+        .sms { background: #34B7F1; }
+        
+        .share-preview {
+            background: rgba(255,255,255,0.15);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .share-text {
+            background: white;
+            color: #333;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            font-size: 14px;
+            line-height: 1.5;
+        }
     </style>
 </head>
 <body class="news-layout">
@@ -176,11 +220,58 @@
                 <div class="code-label">Your Referral Code:</div>
                 <div class="referral-code" id="referralCode">DADAAL-7011</div>
                 <button class="copy-btn" onclick="copyCode()">📋 Copy Code</button>
+                
+                <!-- Social Media Sharing Section -->
+                <div class="social-sharing" style="margin-top: 25px;">
+                    <div class="code-label" style="margin-bottom: 15px;">🌐 Share on Social Media:</div>
+                    <div class="social-buttons" style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                        <button class="social-btn whatsapp" onclick="shareWhatsApp()">
+                            📱 WhatsApp
+                        </button>
+                        <button class="social-btn facebook" onclick="shareFacebook()">
+                            📘 Facebook
+                        </button>
+                        <button class="social-btn twitter" onclick="shareTwitter()">
+                            🐦 Twitter
+                        </button>
+                        <button class="social-btn telegram" onclick="shareTelegram()">
+                            ✈️ Telegram
+                        </button>
+                        <button class="social-btn email" onclick="shareEmail()">
+                            📧 Email
+                        </button>
+                        <button class="social-btn sms" onclick="shareSMS()">
+                            💬 SMS
+                        </button>
+                    </div>
+                </div>
             </div>
             
             <div class="earnings-highlight">
                 <h3>💸 $5 qof walba oo aad soo dirtid!</h3>
                 <p>Share this code with friends and earn $5 for each signup!</p>
+            </div>
+            
+            <!-- Share Preview -->
+            <div class="share-preview">
+                <div class="code-label">📝 Preview Message:</div>
+                <div class="share-text" id="sharePreview">
+                    🔥 Join Dadaal App oo lacag ku samee online! 💰
+                    
+                    ✅ $5 bonus markaad ku biirto
+                    ✅ Referral program - $5 qof walba oo aad soo dirtid
+                    ✅ Premium features
+                    ✅ 24/7 support
+                    
+                    Isticmaal referral code-kayga: DADAAL-7011
+                    
+                    Ku biir hadda: https://dadaal-app.replit.app/register?ref=DADAAL-7011
+                    
+                    #DadaalApp #EarnMoney #OnlineBusiness #Somalia
+                </div>
+                <button class="copy-btn" onclick="copyShareText()" style="margin-top: 15px;">
+                    📋 Copy Message
+                </button>
             </div>
         </div>
     </section>
@@ -240,18 +331,102 @@
     </footer>
 
     <script>
+        const referralCode = 'DADAAL-7011';
+        const shareUrl = `https://dadaal-app.replit.app/register?ref=${referralCode}`;
+        const shareMessage = `🔥 Join Dadaal App oo lacag ku samee online! 💰\n\n✅ $5 bonus markaad ku biirto\n✅ Referral program - $5 qof walba oo aad soo dirtid\n✅ Premium features\n✅ 24/7 support\n\nIsticmaal referral code-kayga: ${referralCode}\n\nKu biir hadda: ${shareUrl}\n\n#DadaalApp #EarnMoney #OnlineBusiness #Somalia`;
+
         function copyCode() {
-            const code = document.getElementById('referralCode').innerText;
-            navigator.clipboard.writeText(code).then(() => {
-                const btn = document.querySelector('.copy-btn');
-                btn.innerHTML = '✅ Copied!';
-                btn.style.background = '#27ae60';
-                setTimeout(() => {
-                    btn.innerHTML = '📋 Copy Code';
-                    btn.style.background = '#27ae60';
-                }, 2000);
+            navigator.clipboard.writeText(referralCode).then(() => {
+                showSuccess('📋 Copy Code', '✅ Copied!');
             });
         }
+
+        function copyShareText() {
+            navigator.clipboard.writeText(shareMessage).then(() => {
+                showSuccess('📋 Copy Message', '✅ Message Copied!');
+            });
+        }
+
+        function showSuccess(originalText, successText) {
+            const btn = event.target;
+            const original = btn.innerHTML;
+            btn.innerHTML = successText;
+            btn.style.background = '#27ae60';
+            setTimeout(() => {
+                btn.innerHTML = original;
+                btn.style.background = '';
+            }, 2000);
+        }
+
+        function shareWhatsApp() {
+            const url = `https://wa.me/?text=${encodeURIComponent(shareMessage)}`;
+            window.open(url, '_blank');
+            trackShare('whatsapp');
+        }
+
+        function shareFacebook() {
+            const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}&quote=${encodeURIComponent(shareMessage)}`;
+            window.open(url, '_blank', 'width=600,height=400');
+            trackShare('facebook');
+        }
+
+        function shareTwitter() {
+            const tweetText = `🔥 Join Dadaal App oo lacag ku samee online! 💰 Use my referral code: ${referralCode} ${shareUrl} #DadaalApp #EarnMoney`;
+            const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`;
+            window.open(url, '_blank', 'width=600,height=400');
+            trackShare('twitter');
+        }
+
+        function shareTelegram() {
+            const url = `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareMessage)}`;
+            window.open(url, '_blank');
+            trackShare('telegram');
+        }
+
+        function shareEmail() {
+            const subject = 'Join Dadaal App - Earn Money Online!';
+            const body = shareMessage.replace(/\n/g, '%0D%0A');
+            const url = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+            window.location.href = url;
+            trackShare('email');
+        }
+
+        function shareSMS() {
+            const url = `sms:?body=${encodeURIComponent(shareMessage)}`;
+            window.location.href = url;
+            trackShare('sms');
+        }
+
+        function trackShare(platform) {
+            // Track sharing analytics
+            console.log(`Shared on ${platform}`);
+            
+            // You can send this to your analytics service
+            fetch('/track_share', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    platform: platform,
+                    referral_code: referralCode,
+                    timestamp: new Date().toISOString()
+                })
+            }).catch(err => console.log('Analytics error:', err));
+        }
+
+        // Auto-generate sharing content based on referral code
+        document.addEventListener('DOMContentLoaded', function() {
+            const codeElement = document.getElementById('referralCode');
+            const previewElement = document.getElementById('sharePreview');
+            
+            if (codeElement && previewElement) {
+                const actualCode = codeElement.textContent;
+                const actualUrl = `https://dadaal-app.replit.app/register?ref=${actualCode}`;
+                const actualMessage = shareMessage.replace(/DADAAL-7011/g, actualCode).replace(/dadaal-app\.replit\.app\/register\?ref=DADAAL-7011/g, actualUrl);
+                previewElement.textContent = actualMessage;
+            }
+        });
     </script>
 </body>
 </html>

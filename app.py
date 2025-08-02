@@ -531,6 +531,59 @@ def track_referral():
     
     return {'success': True, 'earnings': total_earnings}
 
+@app.route('/track_share', methods=['POST'])
+def track_share():
+    """Track social media sharing for analytics"""
+    try:
+        data = request.get_json()
+        platform = data.get('platform')
+        referral_code = data.get('referral_code')
+        timestamp = data.get('timestamp')
+        
+        # Save sharing analytics to database
+        conn = sqlite3.connect('dadaal.db')
+        cursor = conn.cursor()
+        
+        # Create shares table if it doesn't exist
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS shares (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER,
+                platform TEXT NOT NULL,
+                referral_code TEXT,
+                shared_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users (id)
+            )
+        ''')
+        
+        # Insert share record
+        user_id = session.get('user_id')
+        cursor.execute('''
+            INSERT INTO shares (user_id, platform, referral_code)
+            VALUES (?, ?, ?)
+        ''', (user_id, platform, referral_code))
+        
+        # Give small bonus for sharing (optional)
+        if user_id:
+            cursor.execute('''
+                INSERT INTO transactions (user_id, amount, type, description)
+                VALUES (?, ?, 'bonus', ?)
+            ''', (user_id, 0.25, f'Sharing bonus - {platform}'))
+            
+            cursor.execute('''
+                UPDATE users SET total_earnings = total_earnings + 0.25
+                WHERE id = ?
+            ''', (user_id,))
+        
+        conn.commit()
+        conn.close()
+        
+        return {'success': True, 'message': 'Share tracked successfully'}
+        
+    except Exception as e:
+        print(f"Share tracking error: {e}")
+        return {'success': False, 'error': str(e)}
+
 @app.route('/premium')
 def premium():
     return render_template('premium.html')
