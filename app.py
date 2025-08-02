@@ -163,8 +163,38 @@ def init_db():
     conn.commit()
     conn.close()
 
+# Database migration function
+def migrate_database():
+    """Migrate existing database to new schema"""
+    conn = sqlite3.connect('dadaal.db')
+    cursor = conn.cursor()
+    
+    # Check if password_hash column exists
+    cursor.execute("PRAGMA table_info(users)")
+    columns = [column[1] for column in cursor.fetchall()]
+    
+    if 'password_hash' not in columns:
+        # Add missing columns to users table
+        try:
+            cursor.execute('ALTER TABLE users ADD COLUMN password_hash TEXT NOT NULL DEFAULT ""')
+            cursor.execute('ALTER TABLE users ADD COLUMN total_earnings REAL DEFAULT 0')
+            cursor.execute('ALTER TABLE users ADD COLUMN referral_code TEXT')
+            cursor.execute('ALTER TABLE users ADD COLUMN referrer_id INTEGER')
+            cursor.execute('ALTER TABLE users ADD COLUMN status TEXT DEFAULT "active"')
+            cursor.execute('ALTER TABLE users ADD COLUMN premium_until DATE')
+            cursor.execute('ALTER TABLE users ADD COLUMN email_verified BOOLEAN DEFAULT 0')
+            cursor.execute('ALTER TABLE users ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP')
+            cursor.execute('ALTER TABLE users ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP')
+            print("Database migration completed successfully!")
+        except sqlite3.OperationalError as e:
+            print(f"Migration error (might be normal): {e}")
+    
+    conn.commit()
+    conn.close()
+
 # Initialize database
 init_db()
+migrate_database()
 
 # Global variables for tracking earnings
 total_earnings = 0
