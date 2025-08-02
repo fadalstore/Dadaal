@@ -413,24 +413,34 @@ def login():
         
         if not email or not password:
             flash('Fadlan geli email iyo password.')
-            return redirect(url_for('login'))
+            return render_template('login.html')
         
-        conn = sqlite3.connect('dadaal.db')
-        cursor = conn.cursor()
-        cursor.execute('SELECT id, name, password_hash FROM users WHERE email = ? AND status = "active"', (email,))
-        user = cursor.fetchone()
-        conn.close()
-        
-        if user and verify_password(user[2], password):
-            session['user_id'] = user[0]
-            session['user_name'] = user[1]
-            session.permanent = True
+        try:
+            conn = sqlite3.connect('dadaal.db')
+            cursor = conn.cursor()
+            cursor.execute('SELECT id, name, password_hash FROM users WHERE email = ? AND status = "active"', (email,))
+            user = cursor.fetchone()
+            conn.close()
             
-            flash(f'Ku soo dhawow dib, {user[1]}!')
-            return redirect(url_for('dashboard'))
-        else:
-            flash('Email ama password khalad.')
-            return redirect(url_for('login'))
+            if user and len(user) >= 3 and user[2]:
+                if verify_password(user[2], password):
+                    session['user_id'] = user[0]
+                    session['user_name'] = user[1]
+                    session.permanent = True
+                    
+                    flash(f'Ku soo dhawow dib, {user[1]}!')
+                    return redirect(url_for('dashboard'))
+                else:
+                    flash('Password khalad.')
+                    return render_template('login.html')
+            else:
+                flash('Email-kan ma jiro ama ma laha password.')
+                return render_template('login.html')
+                
+        except Exception as e:
+            flash('Khalad ayaa dhacay. Fadlan isku day mar kale.')
+            print(f"Login error: {e}")
+            return render_template('login.html')
     
     return render_template('login.html')
 

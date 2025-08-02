@@ -7,55 +7,37 @@
     <title>🔐 Gal Akoonkaaga - Dadaal App</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <style>
-        .login-container {
-            min-height: 100vh;
+        body {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 20px;
-            position: relative;
-            overflow: hidden;
+            margin: 0;
+            font-family: 'Arial', sans-serif;
         }
         
-        .login-container::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="rgba(255,255,255,0.1)"/><circle cx="80" cy="80" r="2" fill="rgba(255,255,255,0.1)"/></svg>');
-        }
-        
-        .login-card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(15px);
+        .login-container {
+            background: white;
             border-radius: 25px;
-            padding: 50px 40px;
+            padding: 40px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.1);
             width: 100%;
-            max-width: 450px;
+            max-width: 400px;
             position: relative;
-            z-index: 1;
-            border: 1px solid rgba(255,255,255,0.2);
-        }
-        
-        .login-header {
-            text-align: center;
-            margin-bottom: 40px;
         }
         
         .login-title {
-            font-size: 2.5rem;
+            text-align: center;
             color: #333;
+            font-size: 2.5rem;
             margin-bottom: 10px;
-            font-weight: bold;
         }
         
         .login-subtitle {
+            text-align: center;
             color: #666;
-            font-size: 1.1rem;
+            margin-bottom: 30px;
         }
         
         .form-group {
@@ -64,9 +46,9 @@
         
         .form-label {
             display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
             color: #333;
+            font-weight: bold;
+            margin-bottom: 8px;
             font-size: 1.1rem;
         }
         
@@ -77,14 +59,15 @@
             border-radius: 12px;
             font-size: 16px;
             transition: all 0.3s ease;
-            background: white;
+            background: #f8f9fa;
+            box-sizing: border-box;
         }
         
         .form-input:focus {
             border-color: #667eea;
             outline: none;
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-            transform: translateY(-2px);
+            background: white;
         }
         
         .login-btn {
@@ -93,12 +76,12 @@
             color: white;
             border: none;
             padding: 18px;
-            border-radius: 12px;
+            border-radius: 15px;
             font-size: 1.2rem;
             font-weight: bold;
             cursor: pointer;
             transition: all 0.3s ease;
-            margin-top: 20px;
+            margin-top: 10px;
         }
         
         .login-btn:hover {
@@ -106,27 +89,27 @@
             box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
         }
         
-        .login-footer {
+        .register-link {
             text-align: center;
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #eee;
+            margin-top: 25px;
+            color: #666;
         }
         
-        .register-link {
+        .register-link a {
             color: #667eea;
             text-decoration: none;
             font-weight: 600;
         }
         
-        .register-link:hover {
+        .register-link a:hover {
             text-decoration: underline;
         }
         
         .back-home {
             position: absolute;
-            top: 20px;
-            left: 20px;
+            top: -60px;
+            left: 50%;
+            transform: translateX(-50%);
             background: rgba(255,255,255,0.2);
             color: white;
             padding: 10px 20px;
@@ -138,38 +121,88 @@
         
         .back-home:hover {
             background: rgba(255,255,255,0.3);
-            transform: translateY(-2px);
+            transform: translateX(-50%) translateY(-2px);
+        }
+        
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+        
+        .alert-danger {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        
+        .alert-success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
         }
     </style>
 </head>
 <body>
     <div class="login-container">
-        <a href="/" class="back-home">← Ku noqo bogga hore</a>
+        <a href="/" class="back-home">← Bogga Hore</a>
         
-        <div class="login-card">
-            <div class="login-header">
-                <h1 class="login-title">🔐 Gal Akoonkaaga</h1>
-                <p class="login-subtitle">Ku soo dhawaada Dadaal App</p>
+        <h1 class="login-title">🔐 Gal</h1>
+        <p class="login-subtitle">Gal akoonkaaga si aad u bilawdo</p>
+        
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-danger">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        <form method="POST">
+            <div class="form-group">
+                <label class="form-label">Email:</label>
+                <input type="email" name="email" class="form-input" placeholder="Gali email-kaaga" required>
             </div>
             
-            <form method="POST">
-                <div class="form-group">
-                    <label for="email" class="form-label">Email:</label>
-                    <input type="email" id="email" name="email" class="form-input" placeholder="Gali email-kaaga" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="password" class="form-label">Password:</label>
-                    <input type="password" id="password" name="password" class="form-input" placeholder="Gali password-ka" required>
-                </div>
-                
-                <button type="submit" class="login-btn">🚀 Gal Akoonka</button>
-            </form>
-            
-            <div class="login-footer">
-                <p>Ma lihid akoon? <a href="/register" class="register-link">Diiwaan geli halkan</a></p>
+            <div class="form-group">
+                <label class="form-label">Password:</label>
+                <input type="password" name="password" class="form-input" placeholder="Gali password-ka" required>
             </div>
+            
+            <button type="submit" class="login-btn">
+                🚀 GAL AKOONKA
+            </button>
+        </form>
+        
+        <div class="register-link">
+            Ma lihid akoon? <a href="/register">Diiwaan geli halkan</a>
         </div>
     </div>
+
+    <script>
+        // Form validation
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const email = document.querySelector('input[name="email"]').value;
+            const password = document.querySelector('input[name="password"]').value;
+            
+            if (!email || !password) {
+                alert('Fadlan buuxi dhammaan qeybaha!');
+                e.preventDefault();
+                return;
+            }
+            
+            if (!email.includes('@')) {
+                alert('Fadlan geli email sax ah!');
+                e.preventDefault();
+                return;
+            }
+            
+            // Show loading state
+            const btn = document.querySelector('.login-btn');
+            btn.innerHTML = '⏳ Waa la galayaa...';
+            btn.disabled = true;
+        });
+    </script>
 </body>
 </html>
