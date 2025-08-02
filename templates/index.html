@@ -8,74 +8,208 @@
     <title>Dadaal App - Bogga Hore</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-<body>
-    <div class="container">
-        <h1>Ku soo dhaweeyay Dadaal App</h1>
-        <nav>
-            <ul>
-                <li><a href="/">Hore</a></li>
-                <li><a href="/payment">Lacag shubo</a></li>
-                <li><a href="/dashboard">Dashboard</a></li>  
-                <li><a href="/gifts">Hadiyado</a></li>
-                <li><a href="/ads">Xayeysiisyo</a></li>
-                <li><a href="/referral">Invite Friends</a></li>
-                <li><a href="/premium">Premium</a></li>
-                <li><a href="/affiliate">Affiliate</a></li>
-                <li><a href="/earnings">Lacag la helay</a></li>
-                <li><a href="/admin">Admin</a></li>
-            </ul>
-        </nav>
-        
-        <!-- Google AdSense Ad -->
-        <div class="ad-container">
-            <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6630634320422572"
-                 crossorigin="anonymous"></script>
-            <ins class="adsbygoogle"
-                 style="display:block"
-                 data-ad-client="ca-pub-6630634320422572"
-                 data-ad-slot="1234567890"
-                 data-ad-format="auto"
-                 data-full-width-responsive="true"></ins>
-            <script>
-                 (adsbygoogle = window.adsbygoogle || []).push({});
-            </script>
-        </div>
-        
-        <div class="content">
-            <p>Waxaan ku caawineeynaa lacag shubasho iyo hadiyado.</p>
-            
-            <!-- Earnings Display -->
-            <div class="earnings-display">
-                <h3>💰 Lacagta la helay: ${{ "%.2f"|format(earnings) }}</h3>
-                <p>Ku soo biir nidaamka lacag samynta!</p>
+<body class="news-layout">
+    <!-- Top Header -->
+    <header class="top-header">
+        <div class="header-container">
+            <div class="logo-section">
+                <div class="hamburger-menu">☰</div>
+                <h1 class="site-logo">DADAAL APP</h1>
             </div>
-            
-            <!-- Call to Action -->
-            <div class="cta-section">
-                <h3>🚀 Bilaw lacag samynta hadda!</h3>
-                <div class="cta-buttons">
-                    <a href="/referral" class="cta-btn">Invite Friends - Hel $5</a>
-                    <a href="/premium" class="cta-btn">Premium Account - $10/month</a>
-                    <a href="/affiliate" class="cta-btn">Affiliate Program - 20%</a>
+            <div class="header-actions">
+                <button class="login-btn">Gal</button>
+                <button class="register-btn">Diiwaan geli</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Navigation -->
+    <nav class="main-nav">
+        <div class="nav-container">
+            <ul class="nav-tabs">
+                <li class="nav-tab active"><a href="/">Hore</a></li>
+                <li class="nav-tab"><a href="/payment">Lacag shubo</a></li>
+                <li class="nav-tab"><a href="/dashboard">Dashboard</a></li>
+                <li class="nav-tab"><a href="/gifts">Hadiyado</a></li>
+                <li class="nav-tab"><a href="/ads">Xayeysiisyo</a></li>
+                <li class="nav-tab"><a href="/referral">Invite Friends</a></li>
+                <li class="nav-tab"><a href="/premium">Premium</a></li>
+                <li class="nav-tab"><a href="/affiliate">Affiliate</a></li>
+                <li class="nav-tab"><a href="/earnings">Dakhli</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="hero-container">
+            <div class="hero-content">
+                <h2 class="hero-title">💰 Ku Bilaw Lacag Samynta Maanta!</h2>
+                <p class="hero-subtitle">Nidaamka ugu fiican ee lacag samynta online-ka ah</p>
+                <div class="hero-stats">
+                    <div class="stat-item">
+                        <span class="stat-number">${{ "%.2f"|format(earnings) }}</span>
+                        <span class="stat-label">Lacagta la helay</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">5,000+</span>
+                        <span class="stat-label">Users</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">24/7</span>
+                        <span class="stat-label">Support</span>
+                    </div>
                 </div>
             </div>
         </div>
-        
-        <!-- Footer -->
-        <footer style="margin-top: 50px; padding: 20px 0; border-top: 1px solid #ddd; text-align: center; background-color: #f8f9fa;">
-            <div style="margin-bottom: 15px;">
-                <a href="/about" style="margin: 0 15px; color: #2c5aa0;">Naga</a>
-                <a href="/terms" style="margin: 0 15px; color: #2c5aa0;">Shuruudaha</a>
-                <a href="/privacy" style="margin: 0 15px; color: #2c5aa0;">Sirta</a>
-                <a href="/contact" style="margin: 0 15px; color: #2c5aa0;">Nala soo xiriir</a>
+    </section>
+
+    <!-- Main Content Grid -->
+    <main class="main-content">
+        <div class="content-grid">
+            <!-- Featured Services -->
+            <section class="featured-services">
+                <h3 class="section-title">🚀 Adeegyada Ugu Waaweyn</h3>
+                
+                <div class="service-cards">
+                    <div class="service-card featured">
+                        <div class="card-image">💰</div>
+                        <div class="card-content">
+                            <h4>Referral Program</h4>
+                            <p>Hel $5 qof walba oo aad soo dirtid</p>
+                            <span class="earning-badge">$5 / Referral</span>
+                            <a href="/referral" class="card-btn">Bilaw hadda</a>
+                        </div>
+                    </div>
+
+                    <div class="service-card">
+                        <div class="card-image">⭐</div>
+                        <div class="card-content">
+                            <h4>Premium Account</h4>
+                            <p>5x lacag badan oo bonuses ah</p>
+                            <span class="earning-badge">$20 / Month</span>
+                            <a href="/premium" class="card-btn">Upgrade</a>
+                        </div>
+                    </div>
+
+                    <div class="service-card">
+                        <div class="card-image">📈</div>
+                        <div class="card-content">
+                            <h4>Affiliate Marketing</h4>
+                            <p>20% commission dhammaan sales-ka</p>
+                            <span class="earning-badge">20% Commission</span>
+                            <a href="/affiliate" class="card-btn">Join Now</a>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Quick Actions -->
+            <aside class="quick-actions">
+                <h3 class="section-title">⚡ Quick Actions</h3>
+                <div class="action-list">
+                    <a href="/payment" class="action-item">
+                        <span class="action-icon">💳</span>
+                        <span class="action-text">Lacag shubo</span>
+                        <span class="action-arrow">→</span>
+                    </a>
+                    <a href="/dashboard" class="action-item">
+                        <span class="action-icon">📊</span>
+                        <span class="action-text">Dashboard</span>
+                        <span class="action-arrow">→</span>
+                    </a>
+                    <a href="/gifts" class="action-item">
+                        <span class="action-icon">🎁</span>
+                        <span class="action-text">Hadiyado</span>
+                        <span class="action-arrow">→</span>
+                    </a>
+                    <a href="/earnings" class="action-item">
+                        <span class="action-icon">💼</span>
+                        <span class="action-text">Earnings</span>
+                        <span class="action-arrow">→</span>
+                    </a>
+                </div>
+            </aside>
+        </div>
+
+        <!-- AdSense Section -->
+        <section class="ad-section">
+            <div class="ad-container">
+                <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6630634320422572"
+                     crossorigin="anonymous"></script>
+                <ins class="adsbygoogle"
+                     style="display:block"
+                     data-ad-client="ca-pub-6630634320422572"
+                     data-ad-slot="1234567890"
+                     data-ad-format="auto"
+                     data-full-width-responsive="true"></ins>
+                <script>
+                     (adsbygoogle = window.adsbygoogle || []).push({});
+                </script>
             </div>
-            <p style="color: #666; font-size: 14px; margin: 0;">
-                © 2025 Dadaal App. Dhamaan xuquuqda way dhowran yihiin.
-            </p>
-            <p style="color: #666; font-size: 12px; margin: 5px 0 0 0;">
-                Made with ❤️ for Somali Entrepreneurs
-            </p>
-        </footer>
-    </div>
+        </section>
+
+        <!-- Latest Updates -->
+        <section class="latest-updates">
+            <h3 class="section-title">📢 Warar Cusub</h3>
+            <div class="updates-grid">
+                <article class="update-item">
+                    <div class="update-time">2 saacadood ka hor</div>
+                    <h4>Premium members waxay helaan $20 bonus</h4>
+                    <p>Dhammaan premium members-ka waxay heli doonaan $20 bonus bil walba...</p>
+                </article>
+                <article class="update-item">
+                    <div class="update-time">5 saacadood ka hor</div>
+                    <h4>Referral program waa la cusbooneeyay</h4>
+                    <p>Hadda waxaad heli kartaa $5 qof walba oo aad soo dirtid platform-ka...</p>
+                </article>
+                <article class="update-item">
+                    <div class="update-time">Shalay</div>
+                    <h4>Mobile app waa la soo saaray</h4>
+                    <p>Download mobile app-ka cusub si aad ugu hesho features badan...</p>
+                </article>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="footer-container">
+            <div class="footer-sections">
+                <div class="footer-section">
+                    <h4>Dadaal App</h4>
+                    <p>Nidaamka ugu fiican ee lacag samynta online-ka ah</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Links</h4>
+                    <ul>
+                        <li><a href="/about">Naga</a></li>
+                        <li><a href="/terms">Shuruudaha</a></li>
+                        <li><a href="/privacy">Sirta</a></li>
+                        <li><a href="/contact">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Support</h4>
+                    <ul>
+                        <li><a href="/contact">Help Center</a></li>
+                        <li><a href="/about">FAQ</a></li>
+                        <li><a href="/terms">Terms</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>© 2025 Dadaal App. Dhamaan xuquuqda way dhowran yihiin.</p>
+                <p>Made with ❤️ for Somali Entrepreneurs</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Mobile menu toggle
+        document.querySelector('.hamburger-menu').addEventListener('click', function() {
+            document.querySelector('.main-nav').classList.toggle('mobile-open');
+        });
+    </script>
 </body>
 </html>
