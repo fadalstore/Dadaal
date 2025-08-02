@@ -1,0 +1,50 @@
+
+<!DOCTYPE html>
+<html lang="so">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - Dadaal App</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>👤 Akoonkaaga - Profile</h1>
+        
+        {% if user %}
+        <div class="card">
+            <h3>Macluumaadka Shakhsiga</h3>
+            <p><strong>Magaca:</strong> {{ user[0] }}</p>
+            <p><strong>Email:</strong> {{ user[1] }}</p>
+            <p><strong>Telefoon:</strong> {{ user[2] or 'Lama gelin' }}</p>
+            <p><strong>Maalin la diiwaan geliyay:</strong> {{ user[6] }}</p>
+        </div>
+        
+        <div class="card">
+            <h3>💰 Lacag Samyn</h3>
+            <div class="earnings-display">
+                <h3>Lacagtaada: ${{ "%.2f"|format(user[3]) }}</h3>
+            </div>
+            <p><strong>Referral Code:</strong> {{ user[4] }}</p>
+            <p><strong>Dadka aad soo celisay:</strong> {{ referral_count }}</p>
+        </div>
+        
+        {% if user[5] %}
+        <div class="card">
+            <h3>⭐ Premium Account</h3>
+            <p><strong>Premium ilaa:</strong> {{ user[5] }}</p>
+        </div>
+        {% endif %}
+        
+        <div style="text-align: center; margin-top: 20px;">
+            <a href="{{ url_for('dashboard') }}" class="btn btn-primary">Dashboard</a>
+            <a href="{{ url_for('logout') }}" class="btn btn-warning">Ka Bax</a>
+        </div>
+        {% endif %}
+        
+        <div style="text-align: center; margin-top: 20px;">
+            <a href="/">Ku noqo bogga hore</a>
+        </div>
+    </div>
+</body>
+</html>

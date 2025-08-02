@@ -1,40 +1,110 @@
 
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, session
 import os
 import random
 import string
 import sqlite3
-from datetime import datetime
+from datetime import datetime, timedelta
+import hashlib
+import secrets
+import re
+from functools import wraps
 
 app = Flask(__name__)
-app.secret_key = 'dadaal_secret_key_2025'
+app.secret_key = os.environ.get('SECRET_KEY', 'dadaal_secret_key_2025_change_in_production')
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=24)
+
+# Security functions
+def hash_password(password):
+    """Hash password with salt"""
+    salt = secrets.token_hex(16)
+    password_hash = hashlib.pbkdf2_hmac('sha256', password.encode(), salt.encode(), 100000)
+    return salt + password_hash.hex()
+
+def verify_password(stored_password, provided_password):
+    """Verify password against hash"""
+    if not stored_password:
+        return False
+    salt = stored_password[:32]
+    stored_hash = stored_password[32:]
+    password_hash = hashlib.pbkdf2_hmac('sha256', provided_password.encode(), salt.encode(), 100000)
+    return password_hash.hex() == stored_hash
+
+def validate_email(email):
+    """Validate email format"""
+    pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    return re.match(pattern, email) is not None
+
+def validate_phone(phone):
+    """Validate phone number"""
+    pattern = r'^\+?[1-9]\d{1,14}$'
+    return re.match(pattern, phone) is not None
+
+def sanitize_input(text):
+    """Basic input sanitization"""
+    if not text:
+        return ""
+    return text.strip()[:1000]  # Limit length and strip whitespace
+
+def login_required(f):
+    """Decorator to require login"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            flash('Fadlan gal akoonkaaga si aad u aragto boggan.')
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+def admin_required(f):
+    """Decorator to require admin access"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session or not session.get('is_admin', False):
+            flash('Ma lihid fasax si aad u aragto boggan.')
+            return redirect(url_for('home'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+def generate_secure_token():
+    """Generate secure random token"""
+    return secrets.token_urlsafe(32)
 
 # Database setup
 def init_db():
     conn = sqlite3.connect('dadaal.db')
     cursor = conn.cursor()
     
-    # Users table
+    # Users table with enhanced fields
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
             email TEXT UNIQUE NOT NULL,
             phone TEXT,
+            password_hash TEXT NOT NULL DEFAULT '',
             total_earnings REAL DEFAULT 0,
             referral_code TEXT UNIQUE,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            referrer_id INTEGER,
+            status TEXT DEFAULT 'active',
+            premium_until DATE,
+            email_verified BOOLEAN DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (referrer_id) REFERENCES users (id)
         )
     ''')
     
-    # Transactions table
+    # Transactions table with enhanced tracking
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS transactions (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INTEGER,
             amount REAL NOT NULL,
-            type TEXT NOT NULL,
+            type TEXT NOT NULL CHECK (type IN ('earning', 'withdrawal', 'referral', 'premium', 'bonus')),
+            status TEXT DEFAULT 'completed' CHECK (status IN ('pending', 'completed', 'failed', 'cancelled')),
             description TEXT,
+            reference_id TEXT UNIQUE,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (user_id) REFERENCES users (id)
         )
@@ -48,9 +118,47 @@ def init_db():
             email TEXT NOT NULL,
             subject TEXT NOT NULL,
             message TEXT NOT NULL,
+            status TEXT DEFAULT 'new' CHECK (status IN ('new', 'read', 'replied', 'closed')),
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ''')
+    
+    # Referrals tracking table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS referrals (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            referrer_id INTEGER NOT NULL,
+            referred_id INTEGER NOT NULL,
+            status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'completed', 'invalid')),
+            commission_earned REAL DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (referrer_id) REFERENCES users (id),
+            FOREIGN KEY (referred_id) REFERENCES users (id)
+        )
+    ''')
+    
+    # Affiliate links table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS affiliate_links (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            product_name TEXT NOT NULL,
+            link_code TEXT UNIQUE NOT NULL,
+            clicks INTEGER DEFAULT 0,
+            conversions INTEGER DEFAULT 0,
+            commission_rate REAL DEFAULT 0.20,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users (id)
+        )
+    ''')
+    
+    # Create indexes for better performance
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)')
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_users_referral_code ON users(referral_code)')
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_transactions_user_id ON transactions(user_id)')
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_transactions_type ON transactions(type)')
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_referrals_referrer ON referrals(referrer_id)')
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_affiliate_user ON affiliate_links(user_id)')
     
     conn.commit()
     conn.close()
@@ -68,18 +176,69 @@ def home():
     return render_template('index.html', earnings=total_earnings)
 
 @app.route('/admin')
+@admin_required
 def admin():
-    return render_template('admin.html', total_earnings=total_earnings, affiliate_earnings=affiliate_earnings)
+    conn = sqlite3.connect('dadaal.db')
+    cursor = conn.cursor()
+    
+    # Get total platform stats
+    cursor.execute('SELECT COUNT(*), SUM(total_earnings) FROM users WHERE status = "active"')
+    user_stats = cursor.fetchone()
+    
+    cursor.execute('SELECT COUNT(*) FROM contact_messages WHERE status = "new"')
+    new_messages = cursor.fetchone()[0]
+    
+    cursor.execute('SELECT SUM(amount) FROM transactions WHERE type = "earning"')
+    total_earnings = cursor.fetchone()[0] or 0
+    
+    cursor.execute('SELECT SUM(commission_earned) FROM referrals WHERE status = "completed"')
+    affiliate_earnings = cursor.fetchone()[0] or 0
+    
+    conn.close()
+    
+    return render_template('admin.html', 
+                         user_stats=user_stats,
+                         new_messages=new_messages,
+                         total_earnings=total_earnings, 
+                         affiliate_earnings=affiliate_earnings)
 
 @app.route('/dashboard')
+@login_required
 def dashboard():
-    # Test data for now
-    data = [
-        [1, 100, 10, 110],
-        [2, 200, 20, 220],
-        [3, 150, 15, 165]
-    ]
-    return render_template('dashboard.html', data=data, earnings=total_earnings)
+    conn = sqlite3.connect('dadaal.db')
+    cursor = conn.cursor()
+    
+    # Get user's earnings and stats
+    cursor.execute('''
+        SELECT total_earnings, referral_code, premium_until 
+        FROM users WHERE id = ?
+    ''', (session['user_id'],))
+    user_data = cursor.fetchone()
+    
+    # Get recent transactions
+    cursor.execute('''
+        SELECT amount, type, description, created_at 
+        FROM transactions 
+        WHERE user_id = ? 
+        ORDER BY created_at DESC 
+        LIMIT 10
+    ''', (session['user_id'],))
+    transactions = cursor.fetchall()
+    
+    # Get referral stats
+    cursor.execute('''
+        SELECT COUNT(*) as count, COALESCE(SUM(commission_earned), 0) as total
+        FROM referrals 
+        WHERE referrer_id = ? AND status = "completed"
+    ''', (session['user_id'],))
+    referral_stats = cursor.fetchone()
+    
+    conn.close()
+    
+    return render_template('dashboard.html', 
+                         user_data=user_data,
+                         transactions=transactions,
+                         referral_stats=referral_stats)
 
 @app.route('/payment', methods=['GET', 'POST'])
 def payment():
@@ -89,6 +248,147 @@ def payment():
         total_earnings += amount * 0.05  # 5% commission
         return redirect(url_for('thankyou'))
     return render_template('payment.html')
+
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        name = sanitize_input(request.form.get('name'))
+        email = sanitize_input(request.form.get('email'))
+        phone = sanitize_input(request.form.get('phone'))
+        password = request.form.get('password')
+        confirm_password = request.form.get('confirm_password')
+        referral_code = sanitize_input(request.form.get('referral_code', ''))
+        
+        # Validation
+        if not all([name, email, password]):
+            flash('Fadlan buuxi dhammaan qeybaha muhiimka ah.')
+            return redirect(url_for('register'))
+        
+        if not validate_email(email):
+            flash('Email-ka waa khalad.')
+            return redirect(url_for('register'))
+        
+        if phone and not validate_phone(phone):
+            flash('Nambarka telefoonka waa khalad.')
+            return redirect(url_for('register'))
+        
+        if len(password) < 8:
+            flash('Password-ku waa inuu ka badan yahay 8 xaraf.')
+            return redirect(url_for('register'))
+        
+        if password != confirm_password:
+            flash('Password-yada ma isku mid aha.')
+            return redirect(url_for('register'))
+        
+        # Check if email exists
+        conn = sqlite3.connect('dadaal.db')
+        cursor = conn.cursor()
+        cursor.execute('SELECT id FROM users WHERE email = ?', (email,))
+        if cursor.fetchone():
+            flash('Email-kan horay ayaa loo isticmaalay.')
+            conn.close()
+            return redirect(url_for('register'))
+        
+        # Find referrer if referral code provided
+        referrer_id = None
+        if referral_code:
+            cursor.execute('SELECT id FROM users WHERE referral_code = ?', (referral_code,))
+            referrer = cursor.fetchone()
+            if referrer:
+                referrer_id = referrer[0]
+        
+        # Create user
+        password_hash = hash_password(password)
+        user_referral_code = f"DADAAL-{random.randint(10000, 99999)}"
+        
+        cursor.execute('''
+            INSERT INTO users (name, email, phone, password_hash, referral_code, referrer_id)
+            VALUES (?, ?, ?, ?, ?, ?)
+        ''', (name, email, phone, password_hash, user_referral_code, referrer_id))
+        
+        user_id = cursor.lastrowid
+        
+        # Create referral record if applicable
+        if referrer_id:
+            cursor.execute('''
+                INSERT INTO referrals (referrer_id, referred_id, commission_earned)
+                VALUES (?, ?, ?)
+            ''', (referrer_id, user_id, 5.00))
+            
+            # Add referral bonus to referrer
+            cursor.execute('''
+                UPDATE users SET total_earnings = total_earnings + 5.00 
+                WHERE id = ?
+            ''', (referrer_id,))
+        
+        conn.commit()
+        conn.close()
+        
+        session['user_id'] = user_id
+        session['user_name'] = name
+        session.permanent = True
+        
+        flash('Akoonkaaga si guul leh ayaa loo sameeyay!')
+        return redirect(url_for('dashboard'))
+    
+    return render_template('register.html')
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        email = sanitize_input(request.form.get('email'))
+        password = request.form.get('password')
+        
+        if not email or not password:
+            flash('Fadlan geli email iyo password.')
+            return redirect(url_for('login'))
+        
+        conn = sqlite3.connect('dadaal.db')
+        cursor = conn.cursor()
+        cursor.execute('SELECT id, name, password_hash FROM users WHERE email = ? AND status = "active"', (email,))
+        user = cursor.fetchone()
+        conn.close()
+        
+        if user and verify_password(user[2], password):
+            session['user_id'] = user[0]
+            session['user_name'] = user[1]
+            session.permanent = True
+            
+            flash(f'Ku soo dhawow dib, {user[1]}!')
+            return redirect(url_for('dashboard'))
+        else:
+            flash('Email ama password khalad.')
+            return redirect(url_for('login'))
+    
+    return render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    flash('Si guul leh ayaad ka baxday.')
+    return redirect(url_for('home'))
+
+@app.route('/profile')
+@login_required
+def profile():
+    conn = sqlite3.connect('dadaal.db')
+    cursor = conn.cursor()
+    cursor.execute('''
+        SELECT name, email, phone, total_earnings, referral_code, premium_until, created_at
+        FROM users WHERE id = ?
+    ''', (session['user_id'],))
+    user_data = cursor.fetchone()
+    
+    # Get referral stats
+    cursor.execute('SELECT COUNT(*) FROM referrals WHERE referrer_id = ? AND status = "completed"', (session['user_id'],))
+    referral_count = cursor.fetchone()[0]
+    
+    conn.close()
+    
+    return render_template('profile.html', user=user_data, referral_count=referral_count)
+
+
 
 @app.route('/thankyou')
 def thankyou():

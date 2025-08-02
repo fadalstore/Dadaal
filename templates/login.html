@@ -1,0 +1,50 @@
+
+<!DOCTYPE html>
+<html lang="so">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gal Akoonkaaga - Dadaal App</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Gal Akoonkaaga</h1>
+        
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="alert">
+                    {% for message in messages %}
+                        <p>{{ message }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        
+        <div class="card">
+            <form method="POST">
+                <div class="form-group">
+                    <label class="form-label">Email:</label>
+                    <input type="email" name="email" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Password:</label>
+                    <input type="password" name="password" class="form-control" required>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">🚀 Gal</button>
+            </form>
+            
+            <br>
+            <p style="text-align: center;">
+                Akoon ma lihid? <a href="{{ url_for('register') }}">Halkan diiwaan geli</a>
+            </p>
+        </div>
+        
+        <div style="text-align: center; margin-top: 20px;">
+            <a href="/">Ku noqo bogga hore</a>
+        </div>
+    </div>
+</body>
+</html>
