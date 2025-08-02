@@ -1,29 +1,265 @@
+
 <!DOCTYPE html>
 <html lang="so">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lacag shubasho - Dadaal App</title>
+    <title>💳 Lacag shubasho - Dadaal App</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .payment-hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        
+        .payment-container {
+            max-width: 600px;
+            margin: -50px auto 40px;
+            background: white;
+            border-radius: 25px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            position: relative;
+            z-index: 10;
+        }
+        
+        .payment-title {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .payment-subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .form-section {
+            margin-bottom: 30px;
+        }
+        
+        .section-title {
+            font-size: 1.3rem;
+            color: #333;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+        
+        .amount-input {
+            width: 100%;
+            padding: 20px;
+            border: 2px solid #e1e5e9;
+            border-radius: 15px;
+            font-size: 1.5rem;
+            text-align: center;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+        
+        .amount-input:focus {
+            border-color: #667eea;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            background: white;
+        }
+        
+        .phone-input {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid #e1e5e9;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        .phone-input:focus {
+            border-color: #667eea;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .payment-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+            color: white;
+            border: none;
+            padding: 20px;
+            border-radius: 15px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+        
+        .payment-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(39, 174, 96, 0.3);
+        }
+        
+        .payment-methods {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .method-card {
+            background: #f8f9fa;
+            border: 2px solid #e1e5e9;
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .method-card:hover,
+        .method-card.active {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+        }
+        
+        .method-icon {
+            font-size: 2rem;
+            margin-bottom: 5px;
+        }
+        
+        .security-info {
+            background: linear-gradient(135deg, #e8f5e8 0%, #f0f8f0 100%);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid #27ae60;
+        }
+        
+        .back-link {
+            display: inline-block;
+            color: #667eea;
+            text-decoration: none;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
 </head>
-<body>
-    <div class="container">
-        <h1>Lacag shubasho</h1>
-        <form method="post">
-            <div style="text-align: center;">
-                <label for="amount">Qadarka lacagta ($):</label><br>
-                <input type="number" id="amount" name="amount" placeholder="Gali qadarka lacagta" required min="1"><br><br>
-                
-                <label for="phone">Nambarada telefoonka:</label><br>
-                <input type="tel" id="phone" name="phone" placeholder="252-XX-XXXXXXX" required><br><br>
-                
-                <button type="submit">Shubo lacagta</button>
+<body class="news-layout">
+    <!-- Header -->
+    <header class="top-header">
+        <div class="header-container">
+            <div class="logo-section">
+                <div class="hamburger-menu">☰</div>
+                <h1 class="site-logo">DADAAL APP</h1>
             </div>
-        </form>
-        <br>
-        <div style="text-align: center;">
-            <a href="/">Ku noqo bogga hore</a>
+            <div class="header-actions">
+                <a href="/login" class="login-btn">Gal</a>
+                <a href="/register" class="register-btn">Diiwaan geli</a>
+            </div>
         </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="main-nav">
+        <div class="nav-container">
+            <ul class="nav-tabs">
+                <li class="nav-tab"><a href="/">Hore</a></li>
+                <li class="nav-tab active"><a href="/payment">Lacag shubo</a></li>
+                <li class="nav-tab"><a href="/dashboard">Dashboard</a></li>
+                <li class="nav-tab"><a href="/gifts">Hadiyado</a></li>
+                <li class="nav-tab"><a href="/referral">Invite Friends</a></li>
+                <li class="nav-tab"><a href="/premium">Premium</a></li>
+                <li class="nav-tab"><a href="/earnings">Dakhli</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="payment-hero">
+        <h1 class="payment-title">💳 Lacag shubasho</h1>
+        <p class="payment-subtitle">Shubo lacag si aad u bilaawdo dakhliga</p>
+    </section>
+
+    <!-- Payment Form -->
+    <div class="payment-container">
+        <a href="/" class="back-link">← Ku noqo bogga hore</a>
+        
+        <form method="POST">
+            <div class="form-section">
+                <h3 class="section-title">💰 Qadarka lacagta ($):</h3>
+                <input type="number" name="amount" class="amount-input" placeholder="Gali qadarka lacagta" min="1" required>
+            </div>
+            
+            <div class="form-section">
+                <h3 class="section-title">📱 Habka lacag shubasho:</h3>
+                <div class="payment-methods">
+                    <div class="method-card active">
+                        <div class="method-icon">📱</div>
+                        <div>Mobile Money</div>
+                    </div>
+                    <div class="method-card">
+                        <div class="method-icon">💳</div>
+                        <div>Credit Card</div>
+                    </div>
+                    <div class="method-card">
+                        <div class="method-icon">🏦</div>
+                        <div>Bank Transfer</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-section">
+                <h3 class="section-title">📞 Nambarada telefoonka:</h3>
+                <input type="tel" name="phone" class="phone-input" placeholder="252-XX-XXXXXXX" required>
+            </div>
+            
+            <div class="security-info">
+                <h4>🔒 Ammaan</h4>
+                <p>Dhammaan macaamiishaada way ammaan yihiin oo waxay u maraan SSL encryption. Ma keydineyno xogta kaararka.</p>
+            </div>
+            
+            <button type="submit" class="payment-btn">
+                🚀 SHUBO LACAGTA
+            </button>
+        </form>
     </div>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="footer-container">
+            <div class="footer-sections">
+                <div class="footer-section">
+                    <h4>Dadaal App</h4>
+                    <p>Nidaamka ugu fiican ee lacag samynta online-ka ah</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Links</h4>
+                    <ul>
+                        <li><a href="/about">Naga</a></li>
+                        <li><a href="/terms">Shuruudaha</a></li>
+                        <li><a href="/contact">Contact</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>© 2025 Dadaal App. Dhamaan xuquuqda way dhowran yihiin.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Payment method selection
+        document.querySelectorAll('.method-card').forEach(card => {
+            card.addEventListener('click', function() {
+                document.querySelectorAll('.method-card').forEach(c => c.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    </script>
 </body>
 </html>

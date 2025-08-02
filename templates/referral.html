@@ -4,168 +4,254 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Invite Friends - Dadaal App</title>
+    <title>💰 Invite Friends & Earn Money! - Dadaal App</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
-    <div class="container">
-        <h1>💰 Invite Friends & Earn Money!</h1>
+    <style>
+        .referral-hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 60px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
         
-        <div class="affiliate-box">
-            <h3>Your Referral Code:</h3>
-            <div class="affiliate-code">{{ referral_code }}</div>
-            <p>Share this code with friends and earn $5 for each signup!</p>
+        .referral-hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="rgba(255,255,255,0.1)"/><circle cx="80" cy="80" r="2" fill="rgba(255,255,255,0.1)"/><circle cx="40" cy="60" r="1" fill="rgba(255,255,255,0.1)"/></svg>');
+        }
+        
+        .referral-content {
+            position: relative;
+            z-index: 1;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .main-title {
+            font-size: 3rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .subtitle {
+            font-size: 1.3rem;
+            margin-bottom: 40px;
+            opacity: 0.9;
+        }
+        
+        .referral-code-section {
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin: 40px auto;
+            max-width: 500px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .code-label {
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        .referral-code {
+            background: white;
+            color: #333;
+            padding: 20px;
+            border-radius: 15px;
+            font-size: 1.8rem;
+            font-weight: bold;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        
+        .copy-btn {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .copy-btn:hover {
+            background: #219a52;
+            transform: translateY(-2px);
+        }
+        
+        .how-it-works {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            margin: 40px auto;
+            max-width: 800px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .steps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
+        
+        .step-card {
+            text-align: center;
+            padding: 25px;
+            border-radius: 15px;
+            background: linear-gradient(145deg, #f8f9fa, #e9ecef);
+            transition: transform 0.3s ease;
+        }
+        
+        .step-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .step-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+        
+        .earnings-highlight {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            margin: 30px auto;
+            max-width: 600px;
+        }
+    </style>
+</head>
+<body class="news-layout">
+    <!-- Header -->
+    <header class="top-header">
+        <div class="header-container">
+            <div class="logo-section">
+                <div class="hamburger-menu">☰</div>
+                <h1 class="site-logo">DADAAL APP</h1>
+            </div>
+            <div class="header-actions">
+                <a href="/login" class="login-btn">Gal</a>
+                <a href="/register" class="register-btn">Diiwaan geli</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="main-nav">
+        <div class="nav-container">
+            <ul class="nav-tabs">
+                <li class="nav-tab"><a href="/">Hore</a></li>
+                <li class="nav-tab"><a href="/payment">Lacag shubo</a></li>
+                <li class="nav-tab"><a href="/dashboard">Dashboard</a></li>
+                <li class="nav-tab"><a href="/gifts">Hadiyado</a></li>
+                <li class="nav-tab active"><a href="/referral">Invite Friends</a></li>
+                <li class="nav-tab"><a href="/premium">Premium</a></li>
+                <li class="nav-tab"><a href="/earnings">Dakhli</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="referral-hero">
+        <div class="referral-content">
+            <h1 class="main-title">💰 Invite Friends & Earn Money!</h1>
+            <p class="subtitle">Hel $5 qof walba oo aad soo dirtid platform-ka!</p>
+            
+            <div class="referral-code-section">
+                <div class="code-label">Your Referral Code:</div>
+                <div class="referral-code" id="referralCode">DADAAL-7011</div>
+                <button class="copy-btn" onclick="copyCode()">📋 Copy Code</button>
+            </div>
+            
+            <div class="earnings-highlight">
+                <h3>💸 $5 qof walba oo aad soo dirtid!</h3>
+                <p>Share this code with friends and earn $5 for each signup!</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- How it Works -->
+    <section class="how-it-works">
+        <h2 style="text-align: center; color: #333; margin-bottom: 20px;">🔥 How it works:</h2>
+        
+        <div class="steps-grid">
+            <div class="step-card">
+                <div class="step-icon">📤</div>
+                <h3>1. Share Your Code</h3>
+                <p>Share your referral code with friends on social media, WhatsApp, or anywhere!</p>
+            </div>
+            
+            <div class="step-card">
+                <div class="step-icon">👥</div>
+                <h3>2. They Sign Up</h3>
+                <p>Your friends sign up using your referral code and join Dadaal App</p>
+            </div>
+            
+            <div class="step-card">
+                <div class="step-icon">💰</div>
+                <h3>3. You Earn $5</h3>
+                <p>Get $5 instantly added to your account for each successful referral!</p>
+            </div>
         </div>
         
-        <div class="content">
-            <h3>How it works:</h3>
-            <ul class="feature-list">
-                <li>Share your referral code with friends</li>
-                <li>They sign up using your code</li>
-                <li>You earn $5 instantly</li>
-                <li>They get $2 bonus on signup</li>
-                <li>Unlimited referrals!</li>
-            </ul>
-            
-            <div class="cta-section">
-                <h3>Share on Social Media:</h3>
-                <div class="cta-buttons">
-                    <button onclick="shareWhatsApp()" class="cta-btn">📱 WhatsApp</button>
-                    <button onclick="shareFacebook()" class="cta-btn">📘 Facebook</button>
-                    <button onclick="shareTwitter()" class="cta-btn">🐦 Twitter</button>
-                    <button onclick="copyReferralLink()" class="cta-btn">📋 Copy Link</button>
+        <div style="text-align: center; margin-top: 40px;">
+            <a href="/dashboard" class="btn btn-primary" style="font-size: 1.2rem; padding: 15px 30px;">
+                📊 View My Earnings
+            </a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="footer-container">
+            <div class="footer-sections">
+                <div class="footer-section">
+                    <h4>Dadaal App</h4>
+                    <p>Nidaamka ugu fiican ee lacag samynta online-ka ah</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Links</h4>
+                    <ul>
+                        <li><a href="/about">Naga</a></li>
+                        <li><a href="/terms">Shuruudaha</a></li>
+                        <li><a href="/contact">Contact</a></li>
+                    </ul>
                 </div>
             </div>
-            
-            <!-- Earnings Display -->
-            <div style="background: #e8f5e8; padding: 15px; border-radius: 5px; margin: 20px 0; text-align: center;">
-                <h3>💰 Your Referral Earnings</h3>
-                <div id="referral-earnings" style="font-size: 24px; color: green; font-weight: bold;">$0.00</div>
-                <p>Friends Referred: <span id="referral-count">0</span></p>
+            <div class="footer-bottom">
+                <p>© 2025 Dadaal App. Dhamaan xuquuqda way dhowran yihiin.</p>
             </div>
         </div>
-        
-        <script>
-            const referralCode = "{{ referral_code }}";
-            const appUrl = window.location.origin;
-            
-            // Load saved referral data
-            let referralEarnings = parseFloat(localStorage.getItem('referralEarnings') || '0');
-            let referralCount = parseInt(localStorage.getItem('referralCount') || '0');
-            
-            function updateReferralDisplay() {
-                document.getElementById('referral-earnings').textContent = `$${referralEarnings.toFixed(2)}`;
-                document.getElementById('referral-count').textContent = referralCount;
-            }
-            
-            function shareWhatsApp() {
-                const message = `🚀 Ku biir Dadaal App oo lacag samee online! 
-                
-💰 Adigu $2 bonus qaadan doonta
-💰 Aniguna $5 heli doonaa
-                
-Isticmaal code-kayga: ${referralCode}
-                
-Link: ${appUrl}`;
-                
-                const url = `https://wa.me/?text=${encodeURIComponent(message)}`;
-                window.open(url, '_blank');
-                trackShare('whatsapp');
-            }
-            
-            function shareFacebook() {
-                const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(appUrl)}&quote=${encodeURIComponent('Ku biir Dadaal App oo lacag samee! Code: ' + referralCode)}`;
-                window.open(url, '_blank');
-                trackShare('facebook');
-            }
-            
-            function shareTwitter() {
-                const message = `🚀 Ku biir Dadaal App oo lacag samee online! Code: ${referralCode} ${appUrl}`;
-                const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(message)}`;
-                window.open(url, '_blank');
-                trackShare('twitter');
-            }
-            
-            function copyReferralLink() {
-                const fullLink = `${appUrl}?ref=${referralCode}`;
-                navigator.clipboard.writeText(fullLink).then(() => {
-                    showNotification('✅ Link-ka waa la koobiyeeyay!');
-                    trackShare('copy');
-                }).catch(() => {
-                    // Fallback for older browsers
-                    const textArea = document.createElement('textarea');
-                    textArea.value = fullLink;
-                    document.body.appendChild(textArea);
-                    textArea.select();
-                    document.execCommand('copy');
-                    document.body.removeChild(textArea);
-                    showNotification('✅ Link-ka waa la koobiyeeyay!');
-                    trackShare('copy');
-                });
-            }
-            
-            function trackShare(platform) {
-                // Simulate earning for sharing
-                const shareBonus = 0.25; // $0.25 per share
-                referralEarnings += shareBonus;
-                localStorage.setItem('referralEarnings', referralEarnings.toString());
-                
-                updateReferralDisplay();
-                showNotification(`💰 Waxaad kasatay $${shareBonus.toFixed(2)} share-ka ${platform}!`);
-            }
-            
-            function showNotification(message) {
-                const notification = document.createElement('div');
-                notification.style.cssText = `
-                    position: fixed; top: 20px; right: 20px; 
-                    background: #4CAF50; color: white; padding: 15px; 
-                    border-radius: 5px; z-index: 1000;
-                    animation: slideIn 0.3s ease-in;
-                    max-width: 300px; text-align: center;
-                `;
-                notification.innerHTML = message;
-                document.body.appendChild(notification);
-                
+    </footer>
+
+    <script>
+        function copyCode() {
+            const code = document.getElementById('referralCode').innerText;
+            navigator.clipboard.writeText(code).then(() => {
+                const btn = document.querySelector('.copy-btn');
+                btn.innerHTML = '✅ Copied!';
+                btn.style.background = '#27ae60';
                 setTimeout(() => {
-                    notification.remove();
-                }, 4000);
-            }
-            
-            // Initialize on page load
-            document.addEventListener('DOMContentLoaded', function() {
-                updateReferralDisplay();
+                    btn.innerHTML = '📋 Copy Code';
+                    btn.style.background = '#27ae60';
+                }, 2000);
             });
-        </script>
-        
-        <style>
-            @keyframes slideIn {
-                from { transform: translateX(100%); }
-                to { transform: translateX(0); }
-            }
-            
-            .cta-btn {
-                display: inline-block;
-                padding: 12px 20px;
-                margin: 8px;
-                background: #2c5aa0;
-                color: white;
-                text-decoration: none;
-                border-radius: 5px;
-                border: none;
-                cursor: pointer;
-                font-size: 16px;
-                transition: background 0.3s;
-            }
-            
-            .cta-btn:hover {
-                background: #1e3f73;
-            }
-        </style>
-        
-        <br>
-        <div style="text-align: center;">
-            <a href="/">Ku noqo bogga hore</a>
-        </div>
-    </div>
+        }
+    </script>
 </body>
 </html>
