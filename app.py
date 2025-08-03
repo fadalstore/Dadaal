@@ -560,6 +560,9 @@ def payment():
                 # Generate unique reference ID
                 reference_id = payment_response.get('transaction_id', f"PAY-{secrets.token_hex(8).upper()}")
 
+                # Log payment processing
+                print(f"Processing payment: ${amount} via {payment_method} for user {session['user_id']}")
+
                 # Check if this is a premium payment
                 if is_premium:
                     # Calculate premium duration
@@ -589,10 +592,11 @@ def payment():
                     commission = amount * 0.05
 
                     # Insert payment transaction
+                    payment_description = f'Commission from ${amount} payment via {payment_method.replace("_", " ").title()}'
                     cursor.execute('''
                         INSERT INTO transactions (user_id, amount, type, status, description, reference_id)
                         VALUES (?, ?, 'earning', 'completed', ?, ?)
-                    ''', (session['user_id'], commission, f'Commission waxaa laga helay lacag shubasho ${amount} via {payment_method}', reference_id))
+                    ''', (session['user_id'], commission, payment_description, reference_id))
 
                     # Update user's total earnings
                     cursor.execute('''
@@ -628,30 +632,50 @@ def payment():
 def process_mobile_money_payment(amount, phone):
     """Process Mobile Money payment for Somalia (EVC PLUS, ZAAD Service)"""
     try:
-        # Demo mode - simulate successful payment for testing
         print(f"Processing Mobile Money payment: ${amount} to {phone}")
         
-        # Validate phone number format
-        if not phone.startswith('+252') and not phone.startswith('252'):
+        # Clean phone number
+        phone = phone.strip().replace('-', '').replace(' ', '')
+        
+        # Validate phone number format for Somalia
+        if not (phone.startswith('+252') or phone.startswith('252')):
             return {
                 'success': False,
-                'error': 'Nambarka telefoonka waa inuu bilaabmaa +252 ama 252'
+                'error': 'Nambarka telefoonka waa inuu bilaabmaa +252 (tusaale: +252611234567)'
             }
         
-        # Simulate API call success for demo
+        # Ensure phone has correct length (252 + 8-9 digits)
+        clean_phone = phone.replace('+252', '').replace('252', '')
+        if len(clean_phone) < 8 or len(clean_phone) > 9:
+            return {
+                'success': False,
+                'error': 'Nambarka telefoonka format khalad - tusaale: +252611234567'
+            }
+        
+        # Validate amount
+        if amount < 1 or amount > 10000:
+            return {
+                'success': False,
+                'error': 'Lacagta waa inay u dhaxaysaa $1 - $10,000'
+            }
+        
+        # Simulate successful API call
         transaction_id = f"MM-{secrets.token_hex(8).upper()}"
+        
+        print(f"✅ Mobile Money payment successful: {transaction_id}")
         
         return {
             'success': True,
             'transaction_id': transaction_id,
-            'message': f'Mobile Money payment ${amount} guul leh - {phone}'
+            'message': f'Mobile Money payment ${amount} guul leh - {phone}',
+            'payment_method': 'mobile_money'
         }
 
     except Exception as e:
-        print(f"Mobile money payment error: {e}")
+        print(f"❌ Mobile money payment error: {e}")
         return {
             'success': False,
-            'error': 'Khalad ayaa dhacay lacag bixinta'
+            'error': f'Khalad ayaa dhacay lacag bixinta: {str(e)}'
         }
 
 def process_stripe_payment(amount, form_data):
@@ -1273,6 +1297,85 @@ def admin_users():
     conn.close()
 
     return render_template('admin_users.html', users=users)
+
+@app.route('/admin/payments')
+@admin_required
+def admin_payments():
+    """Admin payment analytics dashboard."""
+    try:
+        conn = sqlite3.connect('dadaal.db')
+        cursor = conn.cursor()
+
+        # Calculate total revenue
+        cursor.execute('SELECT SUM(amount) FROM transactions WHERE status = "completed"')
+        total_revenue = cursor.fetchone()[0] or 0
+
+        # Payment method statistics
+        cursor.execute('''
+            SELECT 
+                COUNT(*) as mobile_money_count,
+                COALESCE(SUM(amount), 0) as mobile_money_total
+            FROM transactions 
+            WHERE description LIKE '%mobile_money%' OR description LIKE '%Mobile Money%'
+        ''')
+        mobile_money_stats = cursor.fetchone()
+
+        cursor.execute('''
+            SELECT 
+                COUNT(*) as credit_card_count,
+                COALESCE(SUM(amount), 0) as credit_card_total
+            FROM transactions 
+            WHERE description LIKE '%credit_card%' OR description LIKE '%Credit Card%' OR description LIKE '%Stripe%'
+        ''')
+        credit_card_stats = cursor.fetchone()
+
+        cursor.execute('''
+            SELECT 
+                COUNT(*) as bank_transfer_count,
+                COALESCE(SUM(amount), 0) as bank_transfer_total
+            FROM transactions 
+            WHERE description LIKE '%bank_transfer%' OR description LIKE '%Bank Transfer%'
+        ''')
+        bank_transfer_stats = cursor.fetchone()
+
+        cursor.execute('''
+            SELECT 
+                COUNT(*) as premium_count,
+                COALESCE(SUM(amount), 0) as premium_total
+            FROM transactions 
+            WHERE type = 'premium'
+        ''')
+        premium_stats = cursor.fetchone()
+
+        # Recent payments
+        cursor.execute('''
+            SELECT t.id, t.amount, t.type, t.status, u.name, t.created_at
+            FROM transactions t
+            JOIN users u ON t.user_id = u.id
+            WHERE t.status = 'completed'
+            ORDER BY t.created_at DESC
+            LIMIT 20
+        ''')
+        recent_payments = cursor.fetchall()
+
+        conn.close()
+
+        return render_template('admin_payments.html',
+                               total_revenue=total_revenue,
+                               mobile_money_count=mobile_money_stats[0],
+                               mobile_money_total=mobile_money_stats[1],
+                               credit_card_count=credit_card_stats[0],
+                               credit_card_total=credit_card_stats[1],
+                               bank_transfer_count=bank_transfer_stats[0],
+                               bank_transfer_total=bank_transfer_stats[1],
+                               premium_count=premium_stats[0],
+                               premium_total=premium_stats[1],
+                               recent_payments=recent_payments)
+
+    except Exception as e:
+        print(f"Admin payments error: {e}")
+        flash(f"Error loading payment analytics: {e}")
+        return redirect(url_for('admin_dashboard'))
 
 @app.route('/admin/analytics')
 @admin_required
