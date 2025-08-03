@@ -86,6 +86,9 @@ def send_reset_email(email, reset_token):
 
         if not gmail_user or not gmail_password:
             print(f"Gmail credentials not configured. Password reset link for {email}: {reset_link}")
+            # For Render deployment, show link on screen if email fails
+            from flask import flash
+            flash(f"Demo Mode: Password reset link: {reset_link}")
             return True  # Return True for demo purposes
 
         # Email content
@@ -140,6 +143,9 @@ def send_verification_email(email, verification_code):
 
         if not gmail_user or not gmail_password:
             print(f"Gmail credentials not configured. Verification code for {email}: {verification_code}")
+            # For Render deployment, show code on screen if email fails
+            from flask import flash
+            flash(f"Demo Mode: Verification code-kaagu waa: {verification_code}")
             return True  # Return True for demo purposes
 
         # Email content
