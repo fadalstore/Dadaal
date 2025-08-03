@@ -628,77 +628,61 @@ def payment():
 def process_mobile_money_payment(amount, phone):
     """Process Mobile Money payment for Somalia (EVC PLUS, ZAAD Service)"""
     try:
-        # Somalia Mobile Money API Integration
-        # Replace with actual Somalia mobile money API
-        import requests
-
-        # Example for EVC PLUS or ZAAD integration
-        api_url = "https://api.evcplus.com/payment"  # Replace with actual API
-
-        payload = {
-            "amount": amount,
-            "phone": phone,
-            "currency": "USD",
-            "description": "Dadaal App Payment",
-            "merchant_id": os.environ.get('MOBILE_MONEY_MERCHANT_ID'),
-            "api_key": os.environ.get('MOBILE_MONEY_API_KEY')
-        }
-
-        response = requests.post(api_url, json=payload, timeout=30)
-
-        if response.status_code == 200:
-            result = response.json()
-            if result.get('status') == 'success':
-                return {
-                    'success': True,
-                    'transaction_id': result.get('transaction_id'),
-                    'message': 'Payment processed successfully'
-                }
-
+        # Demo mode - simulate successful payment for testing
+        print(f"Processing Mobile Money payment: ${amount} to {phone}")
+        
+        # Validate phone number format
+        if not phone.startswith('+252') and not phone.startswith('252'):
+            return {
+                'success': False,
+                'error': 'Nambarka telefoonka waa inuu bilaabmaa +252 ama 252'
+            }
+        
+        # Simulate API call success for demo
+        transaction_id = f"MM-{secrets.token_hex(8).upper()}"
+        
         return {
-            'success': False,
-            'error': 'Mobile money payment failed'
+            'success': True,
+            'transaction_id': transaction_id,
+            'message': f'Mobile Money payment ${amount} guul leh - {phone}'
         }
 
     except Exception as e:
         print(f"Mobile money payment error: {e}")
         return {
             'success': False,
-            'error': 'Payment processing error'
+            'error': 'Khalad ayaa dhacay lacag bixinta'
         }
 
 def process_stripe_payment(amount, form_data):
     """Process Stripe credit card payment"""
     try:
-        import stripe
-
-        # Set Stripe API key (use environment variable)
-        stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
-
-        # Create payment intent
-        intent = stripe.PaymentIntent.create(
-            amount=int(amount * 100),  # Stripe uses cents
-            currency='usd',
-            description='Dadaal App Payment',
-            metadata={
-                'user_id': session.get('user_id'),
-                'payment_method': 'credit_card'
+        # Demo mode - simulate successful payment
+        print(f"Processing Stripe payment: ${amount}")
+        
+        cardholder_name = form_data.get('cardholder_name', '')
+        billing_email = form_data.get('billing_email', '')
+        
+        if not cardholder_name or not billing_email:
+            return {
+                'success': False,
+                'error': 'Fadlan buuxi magaca iyo email-ka'
             }
-        )
-
-        # In a real implementation, you'd handle the client-side confirmation
-        # For now, we'll simulate success
+        
+        # Simulate successful payment
+        transaction_id = f"STRIPE-{secrets.token_hex(8).upper()}"
+        
         return {
             'success': True,
-            'transaction_id': intent.id,
-            'message': 'Stripe payment processed'
+            'transaction_id': transaction_id,
+            'message': f'Credit card payment ${amount} guul leh'
         }
 
     except Exception as e:
         print(f"Stripe payment error: {e}")
         return {
             'success': False,
-            'error': 'Credit card payment failed'
+            'error': 'Credit card payment wuu fashilmay'
         }
 
 def process_bank_transfer(amount, phone):

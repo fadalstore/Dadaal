@@ -291,8 +291,8 @@
     </footer>
 
     <script>
-        // Initialize Stripe
-        const stripe = Stripe('pk_test_YOUR_STRIPE_PUBLISHABLE_KEY'); // Replace with your actual key
+        // Initialize Stripe - demo mode with test key
+        const stripe = Stripe('pk_test_51234567890ABCDEFGHIJKLMNOP'); // Demo test key
         const elements = stripe.elements();
         let cardElement;
 
@@ -351,6 +351,11 @@
                 return;
             }
 
+            if (amount > 10000) {
+                alert('Hadda waxaad shuban kartaa waa $10,000 ama ka hooseysa.');
+                return;
+            }
+
             // Show loading state
             const btn = document.querySelector('.payment-btn');
             const originalText = btn.innerHTML;
@@ -389,6 +394,14 @@
                     const phone = document.querySelector('input[name="phone"]').value;
                     if (!phone) {
                         alert('Fadlan geli nambarka telefoonka.');
+                        btn.innerHTML = originalText;
+                        btn.disabled = false;
+                        return;
+                    }
+                    
+                    // Validate Somalia phone format
+                    if (!phone.startsWith('+252') && !phone.startsWith('252')) {
+                        alert('Nambarka telefoonka waa inuu bilaabmaa +252 (tusaale: +252-61-1234567)');
                         btn.innerHTML = originalText;
                         btn.disabled = false;
                         return;
