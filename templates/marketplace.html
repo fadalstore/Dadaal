@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -13,7 +12,7 @@
             padding: 40px 20px;
             text-align: center;
         }
-        
+
         .add-item-form {
             background: white;
             padding: 30px;
@@ -21,14 +20,14 @@
             box-shadow: 0 10px 25px rgba(0,0,0,0.1);
             margin: 20px 0;
         }
-        
+
         .marketplace-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 20px;
             margin: 30px 0;
         }
-        
+
         .item-card {
             background: white;
             border-radius: 15px;
@@ -36,22 +35,22 @@
             box-shadow: 0 10px 25px rgba(0,0,0,0.1);
             transition: transform 0.3s ease;
         }
-        
+
         .item-card:hover {
             transform: translateY(-5px);
         }
-        
+
         .item-info {
             padding: 20px;
         }
-        
+
         .item-price {
             font-size: 1.5rem;
             font-weight: bold;
             color: #27ae60;
             margin: 10px 0;
         }
-        
+
         .buy-btn {
             width: 100%;
             background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
@@ -63,11 +62,11 @@
             cursor: pointer;
             transition: all 0.3s ease;
         }
-        
+
         .buy-btn:hover {
             box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3);
         }
-        
+
         .form-input {
             width: 100%;
             padding: 12px;
@@ -76,7 +75,7 @@
             border-radius: 8px;
             font-size: 14px;
         }
-        
+
         .add-btn {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -85,6 +84,103 @@
             border-radius: 8px;
             font-weight: bold;
             cursor: pointer;
+        }
+
+        /* Styles for Wholesale Products */
+        .wholesale-section {
+            margin: 30px 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            text-align: center; /* Center align content */
+        }
+
+        .wholesale-section h2 {
+            margin-bottom: 10px;
+        }
+
+        .wholesale-section p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .marketplace-item {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 3px solid #e1e5e9; /* Default border */
+        }
+
+        .marketplace-item.wholesale {
+            border-color: #667eea; /* Custom border for wholesale */
+        }
+
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .wholesale-badge {
+            background-color: #f39c12;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        .item-details {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 15px 0;
+            flex-wrap: wrap; /* Allow wrapping on smaller screens */
+        }
+
+        .price {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #27ae60;
+        }
+
+        .wholesale-price {
+            font-size: 1.2rem;
+            color: #8e44ad;
+            font-weight: bold;
+        }
+
+        .commission {
+            font-size: 1.1rem;
+            color: #c0392b;
+            font-weight: bold;
+        }
+
+        .seller-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9em;
+            color: #7f8c8d;
+            margin-top: 10px;
+            border-top: 1px solid #ecf0f1;
+            padding-top: 10px;
+        }
+
+        .seller-info small {
+            display: block; /* Ensure small elements take full width if needed */
+        }
+
+        .marketplace-item form input[type="number"] {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-right: 10px;
+            width: 70px; /* Adjust width as needed */
         }
     </style>
 </head>
@@ -116,9 +212,42 @@
             </form>
         </div>
 
+        <!-- Wholesale Products Section -->
+        <div class="wholesale-section">
+            <h2>🏢 Wholesale Products - Commission Instant!</h2>
+            <p>Iibso products-ka wholesale-ka ah oo partner-ada lacag isla markiiba u hel!</p>
+        </div>
+
+        <!-- Display wholesale products -->
+        {% for item in wholesale_products %}
+        <div class="marketplace-item wholesale">
+            <div class="item-header">
+                <h3>🏢 {{ item[1] }}</h3>
+                <span class="wholesale-badge">WHOLESALE</span>
+            </div>
+            <p>{{ item[2] or 'No description' }}</p>
+            <div class="item-details">
+                <span class="price">${{ "%.2f"|format(item[3]) }}</span>
+                <span class="wholesale-price">Wholesale: ${{ "%.2f"|format(item[4] or item[3]) }}</span>
+                <span class="commission">Commission: {{ "%.1f"|format((item[7] or 0.15) * 100) }}%</span>
+            </div>
+            <div class="seller-info">
+                <small>Stock: {{ item[9] or 0 }}</small>
+                <small>SKU: {{ item[8] or 'N/A' }}</small>
+            </div>
+            <form method="POST" action="/wholesale/buy_product" style="margin-top: 10px;">
+                <input type="hidden" name="product_id" value="{{ item[0] }}">
+                <input type="number" name="quantity" value="1" min="1" max="{{ item[9] or 999 }}" style="width: 60px; margin-right: 10px;">
+                <button type="submit" class="buy-btn" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 8px 15px; border: none; border-radius: 5px;">
+                    🛒 Buy Now - Instant Commission!
+                </button>
+            </form>
+        </div>
+        {% endfor %}
+
         <!-- Marketplace Items -->
         <h2 style="text-align: center; margin: 40px 0;">🛒 Available Items</h2>
-        
+
         {% if items %}
             <div class="marketplace-grid">
                 {% for item in items %}

@@ -1419,10 +1419,22 @@ def marketplace():
         ''')
         marketplace_items = cursor.fetchall()
         
+        # Get wholesale products
+        cursor.execute('''
+            SELECT wp.*, wpart.company_name as partner_name
+            FROM wholesale_products wp
+            JOIN wholesale_partners wpart ON wp.partner_id = wpart.id
+            WHERE wp.status = 'active' AND wpart.status = 'approved'
+            ORDER BY wp.created_at DESC
+        ''')
+        wholesale_products = cursor.fetchall()
+        
         conn.commit()
         conn.close()
         
-        return render_template('marketplace.html', items=marketplace_items)
+        return render_template('marketplace.html', 
+                             items=marketplace_items,
+                             wholesale_products=wholesale_products)
         
     except Exception as e:
         flash('Khalad ayaa dhacay marketplace-ka.')
@@ -1818,23 +1830,46 @@ def wholesale_signup():
         else:
             commission_tier = 'bronze'
         
-        conn = sqlite3.connect('dadaal.db')
-        cursor = conn.cursor()
-        
-        # Check if business email already exists
-        cursor.execute('SELECT id FROM wholesale_partners WHERE business_email = ?', (business_email,))
-        if cursor.fetchone():
-            return {'success': False, 'error': 'Business email-kan horay ayaa loo isticmaalay'}
+        try:
+            conn = sqlite3.connect('dadaal.db', timeout=20.0)
+            conn.execute('PRAGMA journal_mode=WAL;')  # Better concurrency
+            cursor = conn.cursor()
+            
+            # Check if business email already exists
+            cursor.execute('SELECT id FROM wholesale_partners WHERE business_email = ?', (business_email,))
+            existing_partner = cursor.fetchone()
+            if existing_partner:
+                conn.close()
+                if request.content_type == 'application/json':
+                    return {'success': False, 'error': 'Business email-kan horay ayaa loo isticmaalay wholesale partner ahaan'}
+                else:
+                    flash('Business email-kan horay ayaa loo isticmaalay wholesale partner ahaan.')
+                    return redirect(url_for('wholesale'))
+        except sqlite3.OperationalError as e:
+            if 'database is locked' in str(e):
+                if request.content_type == 'application/json':
+                    return {'success': False, 'error': 'Database waa xidhani hadda. Fadlan daqiiqo dhawr ka dib isku day.'}
+                else:
+                    flash('Database waa xidhani hadda. Fadlan daqiiqo dhawr ka dib isku day.')
+                    return redirect(url_for('wholesale'))
+            else:
+                raise e
         
         # Get user_id from session (if logged in) or create guest application
         user_id = session.get('user_id')
         if not user_id:
-            # Create a temporary user for this application
-            cursor.execute('''
-                INSERT INTO users (name, email, password_hash, status)
-                VALUES (?, ?, ?, 'wholesale_pending')
-            ''', (contact_person, business_email, hash_password('temp_password')))
-            user_id = cursor.lastrowid
+            # Check if email already exists as a regular user
+            cursor.execute('SELECT id FROM users WHERE email = ?', (business_email,))
+            existing_user = cursor.fetchone()
+            if existing_user:
+                user_id = existing_user[0]
+            else:
+                # Create a temporary user for this application
+                cursor.execute('''
+                    INSERT INTO users (name, email, password_hash, status)
+                    VALUES (?, ?, ?, 'wholesale_pending')
+                ''', (contact_person, business_email, hash_password('temp_password')))
+                user_id = cursor.lastrowid
         
         # Insert wholesale partner application
         cursor.execute('''
@@ -1850,19 +1885,30 @@ def wholesale_signup():
         partner_id = cursor.lastrowid
         
         conn.commit()
-        conn.close()
+            
+            # Send notification email to admin
+            try:
+                send_wholesale_notification(company_name, contact_person, business_email)
+            except:
+                pass  # Don't fail if email fails
+            
+            if request.content_type == 'application/json':
+                return {'success': True, 'message': 'Application waa la gudbiyay si guul leh!', 'partner_id': partner_id}
+            else:
+                flash(f'Guul! Application waa la gudbiyay. Partner ID: WS-{partner_id:04d}. Waan kala soo xiriiri doonaa 24 saacadood gudahood.')
+                return redirect(url_for('wholesale_dashboard'))
         
-        # Send notification email to admin
-        try:
-            send_wholesale_notification(company_name, contact_person, business_email)
-        except:
-            pass  # Don't fail if email fails
-        
-        if request.content_type == 'application/json':
-            return {'success': True, 'message': 'Application submitted successfully!', 'partner_id': partner_id}
-        else:
-            flash(f'Application waa la gudbiyay! Partner ID: WS-{partner_id:04d}. Waan kala soo xiriiri doonaa 24 saacadood gudahood.')
-            return redirect(url_for('wholesale_dashboard'))
+        except Exception as db_error:
+            conn.rollback()
+            print(f"Database error in wholesale signup: {db_error}")
+            if request.content_type == 'application/json':
+                return {'success': False, 'error': f'Database error: {str(db_error)}'}
+            else:
+                flash('Khalad ayaa dhacay application submit-ka. Fadlan isku day mar kale.')
+                return redirect(url_for('wholesale'))
+        finally:
+            if conn:
+                conn.close()
         
     except Exception as e:
         print(f"Wholesale signup error: {e}")
@@ -1931,6 +1977,74 @@ def wholesale_dashboard():
     except Exception as e:
         flash('Khalad ayaa dhacay dashboard-ka.')
         return redirect(url_for('wholesale'))
+
+@app.route('/wholesale/buy_product', methods=['POST'])
+@login_required
+def buy_wholesale_product():
+    """Process product purchase and instant commission"""
+    try:
+        product_id = int(request.form.get('product_id'))
+        quantity = int(request.form.get('quantity', 1))
+        
+        conn = sqlite3.connect('dadaal.db', timeout=20.0)
+        cursor = conn.cursor()
+        
+        # Get product details
+        cursor.execute('''
+            SELECT wp.*, wpart.user_id as partner_user_id, wpart.commission_tier
+            FROM wholesale_products wp
+            JOIN wholesale_partners wpart ON wp.partner_id = wpart.id
+            WHERE wp.id = ? AND wp.status = 'active'
+        ''', (product_id,))
+        product = cursor.fetchone()
+        
+        if not product:
+            flash('Product-kan ma jiro ama ma shaqeeyo.')
+            return redirect(url_for('marketplace'))
+        
+        # Calculate amounts
+        unit_price = product[3]  # price column
+        total_amount = unit_price * quantity
+        commission_rate = product[7]  # commission_rate column
+        commission_amount = total_amount * commission_rate
+        
+        # Insert sale record
+        cursor.execute('''
+            INSERT INTO wholesale_sales (
+                product_id, partner_id, buyer_id, quantity, unit_price, 
+                total_amount, commission_amount, commission_rate
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (product_id, product[0], session['user_id'], quantity, unit_price,
+              total_amount, commission_amount, commission_rate))
+        
+        # Add instant commission to partner
+        cursor.execute('''
+            UPDATE users SET total_earnings = total_earnings + ?
+            WHERE id = ?
+        ''', (commission_amount, product[-2]))  # partner_user_id
+        
+        # Add transaction record for partner
+        cursor.execute('''
+            INSERT INTO transactions (user_id, amount, type, description, status)
+            VALUES (?, ?, 'earning', ?, 'completed')
+        ''', (product[-2], commission_amount, f'Wholesale sale commission - {product[1]}'))
+        
+        # Update product stock
+        cursor.execute('''
+            UPDATE wholesale_products SET stock_quantity = stock_quantity - ?
+            WHERE id = ?
+        ''', (quantity, product_id))
+        
+        conn.commit()
+        conn.close()
+        
+        flash(f'Guul! Product waa la iibsaday. Partner-ka wuxuu helay ${commission_amount:.2f} commission!')
+        return redirect(url_for('marketplace'))
+        
+    except Exception as e:
+        flash('Khalad ayaa dhacay product iibashada.')
+        print(f"Wholesale buy error: {e}")
+        return redirect(url_for('marketplace'))
 
 @app.route('/wholesale/add_product', methods=['POST'])
 @login_required
