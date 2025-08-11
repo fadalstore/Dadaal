@@ -411,7 +411,7 @@ def migrate_database():
                 ('created_at', 'TIMESTAMP DEFAULT CURRENT_TIMESTAMP'),
                 ('updated_at', 'TIMESTAMP DEFAULT CURRENT_TIMESTAMP')
             ]
-            
+
             for col_name, col_definition in columns_to_add:
                 try:
                     cursor.execute(f'ALTER TABLE users ADD COLUMN {col_name} {col_definition}')
@@ -426,7 +426,7 @@ def migrate_database():
         cursor.execute('''
             SELECT name FROM sqlite_master WHERE type='table' AND name='user_activity_logs'
         ''')
-        
+
         if not cursor.fetchone():  # Table doesn't exist
             cursor.execute('''
                 CREATE TABLE user_activity_logs (
@@ -442,7 +442,7 @@ def migrate_database():
 
         conn.commit()
         print("Database migration completed successfully!")
-        
+
     except Exception as e:
         print(f"Migration error: {e}")
         conn.rollback()
@@ -479,7 +479,7 @@ def set_language(language):
         flash(f'Language changed to {language}')
     else:
         flash('Language not supported')
-    
+
     # Redirect back to the previous page or home
     return redirect(request.referrer or url_for('home'))
 
@@ -724,39 +724,39 @@ def process_mobile_money_payment(amount, phone):
     """Process Mobile Money payment for Somalia (EVC PLUS, ZAAD Service)"""
     try:
         print(f"Processing Mobile Money payment: ${amount} to {phone}")
-        
+
         # Clean phone number
         phone = phone.strip().replace('-', '').replace(' ', '')
-        
+
         # Validate phone number format for Somalia
         if not (phone.startswith('+252') or phone.startswith('252')):
             return {
                 'success': False,
                 'error': 'Nambarka telefoonka waa inuu bilaabmaa +252 (tusaale: +252611234567)'
             }
-        
+
         # Clean and validate phone number length
         clean_phone = phone.replace('+252', '').replace('252', '').replace(' ', '').replace('-', '')
-        
+
         # Somalia phone numbers: 61XXXXXXX (Hormuud), 63XXXXXXX (Somtel), etc.
         if not (len(clean_phone) == 9 and clean_phone.startswith(('61', '62', '63', '65', '90'))):
             return {
                 'success': False,
                 'error': 'Nambarka telefoonka format khalad. Tusaale sax ah: +252611234567'
             }
-        
+
         # Validate amount
         if amount < 1 or amount > 10000:
             return {
                 'success': False,
                 'error': 'Lacagta waa inay u dhaxaysaa $1 - $10,000'
             }
-        
+
         # Simulate successful API call
         transaction_id = f"MM-{secrets.token_hex(8).upper()}"
-        
+
         print(f"✅ Mobile Money payment successful: {transaction_id}")
-        
+
         return {
             'success': True,
             'transaction_id': transaction_id,
@@ -776,19 +776,19 @@ def process_stripe_payment(amount, form_data):
     try:
         # Demo mode - simulate successful payment
         print(f"Processing Stripe payment: ${amount}")
-        
+
         cardholder_name = form_data.get('cardholder_name', '')
         billing_email = form_data.get('billing_email', '')
-        
+
         if not cardholder_name or not billing_email:
             return {
                 'success': False,
                 'error': 'Fadlan buuxi magaca iyo email-ka'
             }
-        
+
         # Simulate successful payment
         transaction_id = f"STRIPE-{secrets.token_hex(8).upper()}"
-        
+
         return {
             'success': True,
             'transaction_id': transaction_id,
@@ -835,25 +835,25 @@ def process_crypto_payment(amount, crypto_type, wallet_address):
                 'success': False,
                 'error': f'Cryptocurrency {crypto_type} lama taageero'
             }
-        
+
         # Validate wallet address format (basic validation)
         if len(wallet_address) < 26 or len(wallet_address) > 62:
             return {
                 'success': False,
                 'error': 'Wallet address format khalad'
             }
-        
+
         # Generate transaction ID
         transaction_id = f"CRYPTO-{crypto_type.upper()}-{secrets.token_hex(8).upper()}"
-        
+
         # Simulate crypto payment processing
         print(f"Processing {crypto_type} payment: ${amount} to {wallet_address}")
-        
+
         # In production, integrate with crypto APIs:
         # - Coinbase Commerce API
         # - BitPay API
         # - Blockchain.info API
-        
+
         return {
             'success': True,
             'transaction_id': transaction_id,
@@ -861,7 +861,7 @@ def process_crypto_payment(amount, crypto_type, wallet_address):
             'crypto_address': wallet_address,
             'amount_crypto': amount / get_crypto_rate(crypto_type)  # Convert USD to crypto
         }
-        
+
     except Exception as e:
         print(f"Crypto payment error: {e}")
         return {
@@ -941,7 +941,7 @@ def get_alibaba_products(category="electronics", limit=50):
                 'category': 'Home & Kitchen'
             }
         ]
-        
+
         return sample_products[:limit]
     except Exception as e:
         print(f"Alibaba API error: {e}")
@@ -990,7 +990,7 @@ def get_amazon_products(keyword="electronics", limit=20):
                 'reviews': 156789
             }
         ]
-        
+
         return sample_products[:limit]
     except Exception as e:
         print(f"Amazon API error: {e}")
@@ -1001,7 +1001,7 @@ def track_affiliate_click(user_id, product_id, platform):
     try:
         conn = sqlite3.connect('dadaal.db', timeout=20.0)
         cursor = conn.cursor()
-        
+
         # Create affiliate clicks table if doesn't exist
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS affiliate_clicks (
@@ -1016,16 +1016,16 @@ def track_affiliate_click(user_id, product_id, platform):
                 FOREIGN KEY (user_id) REFERENCES users (id)
             )
         ''')
-        
+
         # Record the click
         cursor.execute('''
             INSERT INTO affiliate_clicks (user_id, product_id, platform)
             VALUES (?, ?, ?)
         ''', (user_id, product_id, platform))
-        
+
         conn.commit()
         conn.close()
-        
+
         return True
     except Exception as e:
         print(f"Affiliate click tracking error: {e}")
@@ -1035,35 +1035,35 @@ def process_affiliate_commission(user_id, product_id, sale_amount, commission_ra
     """Process real affiliate commission when sale happens"""
     try:
         commission_amount = sale_amount * commission_rate
-        
+
         conn = sqlite3.connect('dadaal.db', timeout=20.0)
         cursor = conn.cursor()
-        
+
         # Add commission to user's earnings
         cursor.execute('''
             UPDATE users SET total_earnings = total_earnings + ?
             WHERE id = ?
         ''', (commission_amount, user_id))
-        
+
         # Record the transaction
         cursor.execute('''
             INSERT INTO transactions (user_id, amount, type, description, status)
             VALUES (?, ?, 'earning', ?, 'completed')
         ''', (user_id, commission_amount, f'Affiliate commission - Product {product_id}'))
-        
+
         # Update affiliate click record
         cursor.execute('''
             UPDATE affiliate_clicks 
             SET converted = 1, commission_earned = ?
             WHERE user_id = ? AND product_id = ?
         ''', (commission_amount, user_id, product_id))
-        
+
         conn.commit()
         conn.close()
-        
+
         print(f"✅ Affiliate commission processed: ${commission_amount} for user {user_id}")
         return True
-        
+
     except Exception as e:
         print(f"Commission processing error: {e}")
         return False
@@ -1580,7 +1580,7 @@ def marketplace():
     try:
         conn = sqlite3.connect('dadaal.db')
         cursor = conn.cursor()
-        
+
         # Get marketplace items (create table if needed)
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS marketplace_items (
@@ -1596,7 +1596,7 @@ def marketplace():
                 FOREIGN KEY (seller_id) REFERENCES users (id)
             )
         ''')
-        
+
         # Get active marketplace items
         cursor.execute('''
             SELECT m.*, u.name as seller_name 
@@ -1606,7 +1606,7 @@ def marketplace():
             ORDER BY m.created_at DESC
         ''')
         marketplace_items = cursor.fetchall()
-        
+
         # Get wholesale products
         cursor.execute('''
             SELECT wp.*, wpart.company_name as partner_name
@@ -1616,14 +1616,14 @@ def marketplace():
             ORDER BY wp.created_at DESC
         ''')
         wholesale_products = cursor.fetchall()
-        
+
         conn.commit()
         conn.close()
-        
+
         return render_template('marketplace.html', 
                              items=marketplace_items,
                              wholesale_products=wholesale_products)
-        
+
     except Exception as e:
         flash('Khalad ayaa dhacay marketplace-ka.')
         return redirect(url_for('dashboard'))
@@ -1637,25 +1637,25 @@ def add_marketplace_item():
         description = sanitize_input(request.form.get('description'))
         price = float(request.form.get('price'))
         category = sanitize_input(request.form.get('category'))
-        
+
         if not title or price <= 0:
             flash('Fadlan buuxi macluumaadka item-ka.')
             return redirect(url_for('marketplace'))
-        
+
         conn = sqlite3.connect('dadaal.db')
         cursor = conn.cursor()
-        
+
         cursor.execute('''
             INSERT INTO marketplace_items (seller_id, title, description, price, category)
             VALUES (?, ?, ?, ?, ?)
         ''', (session['user_id'], title, description, price, category))
-        
+
         conn.commit()
         conn.close()
-        
+
         flash(f'Item "{title}" waa la ku daray marketplace-ka!')
         return redirect(url_for('marketplace'))
-        
+
     except Exception as e:
         flash('Khalad ayaa dhacay item-ka ku darista.')
         return redirect(url_for('marketplace'))
@@ -1672,11 +1672,11 @@ def real_affiliate():
         # Get real products from different platforms
         alibaba_products = get_alibaba_products(limit=12)
         amazon_products = get_amazon_products(limit=8)
-        
+
         # Get user's affiliate stats
         conn = sqlite3.connect('dadaal.db')
         cursor = conn.cursor()
-        
+
         # Get total affiliate earnings
         cursor.execute('''
             SELECT COALESCE(SUM(commission_earned), 0) 
@@ -1684,7 +1684,7 @@ def real_affiliate():
             WHERE user_id = ? AND converted = 1
         ''', (session['user_id'],))
         affiliate_earnings = cursor.fetchone()[0]
-        
+
         # Get clicks today
         cursor.execute('''
             SELECT COUNT(*) 
@@ -1692,7 +1692,7 @@ def real_affiliate():
             WHERE user_id = ? AND DATE(clicked_at) = DATE('now')
         ''', (session['user_id'],))
         clicks_today = cursor.fetchone()[0]
-        
+
         # Get conversions this month
         cursor.execute('''
             SELECT COUNT(*) 
@@ -1701,16 +1701,16 @@ def real_affiliate():
             AND strftime('%Y-%m', clicked_at) = strftime('%Y-%m', 'now')
         ''', (session['user_id'],))
         conversions_month = cursor.fetchone()[0]
-        
+
         conn.close()
-        
+
         return render_template('real_affiliate.html',
                              alibaba_products=alibaba_products,
                              amazon_products=amazon_products,
                              affiliate_earnings=affiliate_earnings,
                              clicks_today=clicks_today,
                              conversions_month=conversions_month)
-                             
+
     except Exception as e:
         flash('Khalad ayaa dhacay affiliate marketing.')
         print(f"Real affiliate error: {e}")
@@ -1725,14 +1725,14 @@ def track_affiliate_click_route():
         product_id = data.get('product_id')
         platform = data.get('platform')
         action = data.get('action', 'click')
-        
+
         success = track_affiliate_click(session['user_id'], product_id, platform)
-        
+
         if success:
             return {'success': True, 'message': 'Click tracked successfully'}
         else:
             return {'success': False, 'error': 'Failed to track click'}
-            
+
     except Exception as e:
         return {'success': False, 'error': str(e)}
 
@@ -1743,7 +1743,7 @@ def affiliate_stats():
     try:
         conn = sqlite3.connect('dadaal.db')
         cursor = conn.cursor()
-        
+
         # Get comprehensive stats
         cursor.execute('''
             SELECT 
@@ -1754,10 +1754,10 @@ def affiliate_stats():
             FROM affiliate_clicks 
             WHERE user_id = ?
         ''', (session['user_id'],))
-        
+
         stats = cursor.fetchone()
         conn.close()
-        
+
         return {
             'success': True,
             'total_clicks': stats[0],
@@ -1766,7 +1766,7 @@ def affiliate_stats():
             'clicks_today': stats[3],
             'conversion_rate': (stats[1] / stats[0] * 100) if stats[0] > 0 else 0
         }
-        
+
     except Exception as e:
         return {'success': False, 'error': str(e)}
 
@@ -1779,7 +1779,7 @@ def simulate_affiliate_sale():
         product_id = data.get('product_id')
         sale_amount = float(data.get('sale_amount', 25.99))
         commission_rate = float(data.get('commission_rate', 0.10))
-        
+
         # Process the commission
         success = process_affiliate_commission(
             session['user_id'], 
@@ -1787,14 +1787,14 @@ def simulate_affiliate_sale():
             sale_amount, 
             commission_rate
         )
-        
+
         if success:
             commission_earned = sale_amount * commission_rate
             flash(f'🎉 Guul! Someone bought through your link! You earned ${commission_earned:.2f}!')
             return {'success': True, 'commission': commission_earned}
         else:
             return {'success': False, 'error': 'Commission processing failed'}
-            
+
     except Exception as e:
         return {'success': False, 'error': str(e)}
 
@@ -1805,21 +1805,21 @@ def advanced_affiliate():
     try:
         conn = sqlite3.connect('dadaal.db')
         cursor = conn.cursor()
-        
+
         # Get user's affiliate links and performance
         cursor.execute('''
             SELECT product_name, link_code, clicks, conversions, commission_rate
             FROM affiliate_links WHERE user_id = ?
         ''', (session['user_id'],))
         affiliate_links = cursor.fetchall()
-        
+
         # Calculate total affiliate earnings
         cursor.execute('''
             SELECT SUM(amount) FROM transactions 
             WHERE user_id = ? AND type = 'earning' AND description LIKE '%affiliate%'
         ''', (session['user_id'],))
         total_affiliate_earnings = cursor.fetchone()[0] or 0
-        
+
         # Get recent affiliate activity
         cursor.execute('''
             SELECT amount, description, created_at FROM transactions 
@@ -1827,9 +1827,9 @@ def advanced_affiliate():
             ORDER BY created_at DESC LIMIT 10
         ''', (session['user_id'],))
         recent_earnings = cursor.fetchall()
-        
+
         conn.close()
-        
+
         return render_template('advanced_affiliate.html',
                              affiliate_links=affiliate_links,
                              total_affiliate_earnings=total_affiliate_earnings,
@@ -1845,28 +1845,28 @@ def create_affiliate_link():
     try:
         product_name = sanitize_input(request.form.get('product_name'))
         commission_rate = float(request.form.get('commission_rate', 0.20))
-        
+
         if not product_name:
             flash('Fadlan geli magaca product-ka.')
             return redirect(url_for('advanced_affiliate'))
-        
+
         # Generate unique link code
         link_code = f"AFF-{secrets.token_hex(8).upper()}"
-        
+
         conn = sqlite3.connect('dadaal.db')
         cursor = conn.cursor()
-        
+
         cursor.execute('''
             INSERT INTO affiliate_links (user_id, product_name, link_code, commission_rate)
             VALUES (?, ?, ?, ?)
         ''', (session['user_id'], product_name, link_code, commission_rate))
-        
+
         conn.commit()
         conn.close()
-        
+
         flash(f'Affiliate link waa la sameeyay: {link_code}')
         return redirect(url_for('advanced_affiliate'))
-        
+
     except Exception as e:
         flash('Khalad ayaa dhacay affiliate link samayniisa.')
         return redirect(url_for('advanced_affiliate'))
@@ -2123,7 +2123,7 @@ def wholesale_signup():
             data = request.get_json()
         else:
             data = request.form.to_dict()
-        
+
         # Extract form data
         company_name = sanitize_input(data.get('company_name'))
         contact_person = sanitize_input(data.get('contact_person'))
@@ -2134,14 +2134,14 @@ def wholesale_signup():
         product_category = sanitize_input(data.get('product_category'))
         business_description = sanitize_input(data.get('business_description'))
         monthly_volume = float(data.get('monthly_volume', 0))
-        
+
         # Validation
         if not all([company_name, contact_person, business_email, business_type, product_category]):
             return {'success': False, 'error': 'Fadlan buuxi dhammaan qeybaha muhiimka ah'}
-        
+
         if not validate_email(business_email):
             return {'success': False, 'error': 'Business email format khalad'}
-        
+
         # Determine commission tier based on monthly volume
         if monthly_volume >= 10000:
             commission_tier = 'diamond'
@@ -2151,12 +2151,12 @@ def wholesale_signup():
             commission_tier = 'silver'
         else:
             commission_tier = 'bronze'
-        
+
         try:
             conn = sqlite3.connect('dadaal.db', timeout=20.0)
             conn.execute('PRAGMA journal_mode=WAL;')  # Better concurrency
             cursor = conn.cursor()
-            
+
             # Check if business email already exists
             cursor.execute('SELECT id FROM wholesale_partners WHERE business_email = ?', (business_email,))
             existing_partner = cursor.fetchone()
@@ -2176,7 +2176,7 @@ def wholesale_signup():
                     return redirect(url_for('wholesale'))
             else:
                 raise e
-        
+
         # Get user_id from session (if logged in) or create guest application
         user_id = session.get('user_id')
         if not user_id:
@@ -2192,7 +2192,7 @@ def wholesale_signup():
                     VALUES (?, ?, ?, 'wholesale_pending')
                 ''', (contact_person, business_email, hash_password('temp_password')))
                 user_id = cursor.lastrowid
-        
+
         # Insert wholesale partner application
         cursor.execute('''
             INSERT INTO wholesale_partners (
@@ -2203,23 +2203,23 @@ def wholesale_signup():
         ''', (user_id, company_name, contact_person, business_email,
               business_phone, website, business_type, product_category,
               business_description, monthly_volume, commission_tier))
-        
+
         partner_id = cursor.lastrowid
-        
+
         conn.commit()
-            
+
             # Send notification email to admin
             try:
                 send_wholesale_notification(company_name, contact_person, business_email)
             except:
                 pass  # Don't fail if email fails
-            
+
             if request.content_type == 'application/json':
                 return {'success': True, 'message': 'Application waa la gudbiyay si guul leh!', 'partner_id': partner_id}
             else:
                 flash(f'Guul! Application waa la gudbiyay. Partner ID: WS-{partner_id:04d}. Waan kala soo xiriiri doonaa 24 saacadood gudahood.')
                 return redirect(url_for('wholesale_dashboard'))
-        
+
         except Exception as db_error:
             conn.rollback()
             print(f"Database error in wholesale signup: {db_error}")
@@ -2231,7 +2231,7 @@ def wholesale_signup():
         finally:
             if conn:
                 conn.close()
-        
+
     except Exception as e:
         print(f"Wholesale signup error: {e}")
         if request.content_type == 'application/json':
@@ -2247,7 +2247,7 @@ def wholesale_dashboard():
     try:
         conn = sqlite3.connect('dadaal.db')
         cursor = conn.cursor()
-        
+
         # Get partner info
         cursor.execute('''
             SELECT * FROM wholesale_partners 
@@ -2255,11 +2255,11 @@ def wholesale_dashboard():
             ORDER BY created_at DESC LIMIT 1
         ''', (session['user_id'],))
         partner_data = cursor.fetchone()
-        
+
         if not partner_data:
             flash('Ma lihid wholesale partner account. Fadlan apply-ka.')
             return redirect(url_for('wholesale'))
-        
+
         # Get partner's products
         cursor.execute('''
             SELECT * FROM wholesale_products 
@@ -2267,7 +2267,7 @@ def wholesale_dashboard():
             ORDER BY created_at DESC
         ''', (partner_data[0],))
         products = cursor.fetchall()
-        
+
         # Get sales stats
         cursor.execute('''
             SELECT COUNT(*), SUM(total_amount), SUM(commission_amount)
@@ -2275,7 +2275,7 @@ def wholesale_dashboard():
             WHERE partner_id = ?
         ''', (partner_data[0],))
         sales_stats = cursor.fetchone()
-        
+
         # Get recent sales
         cursor.execute('''
             SELECT ws.*, wp.product_name, u.name as buyer_name
@@ -2287,15 +2287,15 @@ def wholesale_dashboard():
             LIMIT 10
         ''', (partner_data[0],))
         recent_sales = cursor.fetchall()
-        
+
         conn.close()
-        
+
         return render_template('wholesale_dashboard.html',
                              partner_data=partner_data,
                              products=products,
                              sales_stats=sales_stats,
                              recent_sales=recent_sales)
-        
+
     except Exception as e:
         flash('Khalad ayaa dhacay dashboard-ka.')
         return redirect(url_for('wholesale'))
@@ -2307,10 +2307,10 @@ def buy_wholesale_product():
     try:
         product_id = int(request.form.get('product_id'))
         quantity = int(request.form.get('quantity', 1))
-        
+
         conn = sqlite3.connect('dadaal.db', timeout=20.0)
         cursor = conn.cursor()
-        
+
         # Get product details
         cursor.execute('''
             SELECT wp.*, wpart.user_id as partner_user_id, wpart.commission_tier
@@ -2319,17 +2319,17 @@ def buy_wholesale_product():
             WHERE wp.id = ? AND wp.status = 'active'
         ''', (product_id,))
         product = cursor.fetchone()
-        
+
         if not product:
             flash('Product-kan ma jiro ama ma shaqeeyo.')
             return redirect(url_for('marketplace'))
-        
+
         # Calculate amounts
         unit_price = product[3]  # price column
         total_amount = unit_price * quantity
         commission_rate = product[7]  # commission_rate column
         commission_amount = total_amount * commission_rate
-        
+
         # Insert sale record
         cursor.execute('''
             INSERT INTO wholesale_sales (
@@ -2338,31 +2338,31 @@ def buy_wholesale_product():
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         ''', (product_id, product[0], session['user_id'], quantity, unit_price,
               total_amount, commission_amount, commission_rate))
-        
+
         # Add instant commission to partner
         cursor.execute('''
             UPDATE users SET total_earnings = total_earnings + ?
             WHERE id = ?
         ''', (commission_amount, product[-2]))  # partner_user_id
-        
+
         # Add transaction record for partner
         cursor.execute('''
             INSERT INTO transactions (user_id, amount, type, description, status)
             VALUES (?, ?, 'earning', ?, 'completed')
         ''', (product[-2], commission_amount, f'Wholesale sale commission - {product[1]}'))
-        
+
         # Update product stock
         cursor.execute('''
             UPDATE wholesale_products SET stock_quantity = stock_quantity - ?
             WHERE id = ?
         ''', (quantity, product_id))
-        
+
         conn.commit()
         conn.close()
-        
+
         flash(f'Guul! Product waa la iibsaday. Partner-ka wuxuu helay ${commission_amount:.2f} commission!')
         return redirect(url_for('marketplace'))
-        
+
     except Exception as e:
         flash('Khalad ayaa dhacay product iibashada.')
         print(f"Wholesale buy error: {e}")
@@ -2381,26 +2381,26 @@ def add_wholesale_product():
         category = sanitize_input(request.form.get('category'))
         sku = sanitize_input(request.form.get('sku'))
         stock_quantity = int(request.form.get('stock_quantity', 0))
-        
+
         if not all([product_name, price > 0, category]):
             flash('Fadlan buuxi dhammaan macluumaadka product-ka.')
             return redirect(url_for('wholesale_dashboard'))
-        
+
         conn = sqlite3.connect('dadaal.db')
         cursor = conn.cursor()
-        
+
         # Get partner ID
         cursor.execute('SELECT id FROM wholesale_partners WHERE user_id = ?', (session['user_id'],))
         partner = cursor.fetchone()
-        
+
         if not partner:
             flash('Ma lihid wholesale partner account.')
             return redirect(url_for('wholesale'))
-        
+
         # Generate SKU if not provided
         if not sku:
             sku = f"WS-{partner[0]}-{secrets.token_hex(4).upper()}"
-        
+
         # Insert product
         cursor.execute('''
             INSERT INTO wholesale_products (
@@ -2409,13 +2409,13 @@ def add_wholesale_product():
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         ''', (partner[0], product_name, description, price, wholesale_price,
               category, sku, stock_quantity))
-        
+
         conn.commit()
         conn.close()
-        
+
         flash(f'Product "{product_name}" waa la ku daray catalog-ga!')
         return redirect(url_for('wholesale_dashboard'))
-        
+
     except Exception as e:
         flash('Khalad ayaa dhacay product-ka ku darista.')
         return redirect(url_for('wholesale_dashboard'))
@@ -2424,28 +2424,28 @@ def send_wholesale_notification(company_name, contact_person, business_email):
     """Send notification to admin about new wholesale application"""
     try:
         admin_email = os.environ.get('ADMIN_EMAIL', 'admin@dadaal.com')
-        
+
         subject = f"New Wholesale Partner Application: {company_name}"
         body = f"""
         New wholesale partner application received:
-        
+
         Company: {company_name}
         Contact: {contact_person}
         Email: {business_email}
-        
+
         Please review the application in the admin dashboard.
         """
-        
+
         # Use existing email system
         msg = MIMEMultipart()
         msg['From'] = os.environ.get('GMAIL_USER', 'noreply@dadaal.com')
         msg['To'] = admin_email
         msg['Subject'] = subject
         msg.attach(MIMEText(body, 'plain'))
-        
+
         print(f"Wholesale notification: {subject}")
         return True
-        
+
     except Exception as e:
         print(f"Failed to send wholesale notification: {e}")
         return False
@@ -2476,7 +2476,7 @@ def contact():
 if __name__ == '__main__':
     # Check if running in production
     is_production = os.environ.get('RENDER') or os.environ.get('RAILWAY_ENVIRONMENT')
-    
+
     try:
         app.run(
             host='0.0.0.0',
