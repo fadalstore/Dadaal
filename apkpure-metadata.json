@@ -1,0 +1,43 @@
+
+{
+  "package_name": "com.dadaal.app",
+  "app_name": "Dadaal - Lacag Samyn",
+  "version_name": "1.0.0",
+  "version_code": 1,
+  "description": {
+    "so": "Dadaal App waa nidaamka ugu fiican ee lacag samynta online-ka ah. Waxaad ku samyn kartaa lacag badan iyada oo aad isticmaalayso affiliate marketing, referrals, iyo premium services.",
+    "en": "Dadaal App is the best online money-making system. You can earn substantial income through affiliate marketing, referrals, and premium services.",
+    "ar": "تطبيق دادال هو أفضل نظام لكسب المال عبر الإنترنت. يمكنك كسب دخل كبير من خلال التسويق بالعمولة والإحالات والخدمات المميزة."
+  },
+  "category": "Finance",
+  "tags": ["money", "earning", "affiliate", "referral", "somalia", "somali", "lacag", "فلوس"],
+  "screenshots": [
+    "screenshot1.png",
+    "screenshot2.png", 
+    "screenshot3.png",
+    "screenshot4.png"
+  ],
+  "icon": "dadaal_icon.png",
+  "features": [
+    "💰 Lacag samyn - Earn real money",
+    "🔗 Affiliate Marketing - 20% commission",
+    "👥 Referral System - $5 per referral", 
+    "💎 Premium Accounts - Up to $1000/month",
+    "📱 Mobile Money Support - EVC PLUS, ZAAD",
+    "🌍 Somali Language Support",
+    "🔐 Secure Payment Processing"
+  ],
+  "requirements": {
+    "min_sdk": 21,
+    "target_sdk": 34,
+    "permissions": [
+      "INTERNET",
+      "ACCESS_NETWORK_STATE"
+    ]
+  },
+  "developer": {
+    "name": "Dadaal Technologies",
+    "email": "info@dadaalapp.com",
+    "website": "https://dadaal.onrender.com"
+  }
+}

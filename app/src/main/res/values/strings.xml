@@ -1,0 +1,8 @@
+
+<resources>
+    <string name="app_name">Dadaal - Lacag Samyn</string>
+    <string name="app_description">Nidaamka ugu fiican ee lacag samynta online-ka ah</string>
+    <string name="loading">Soo raraya...</string>
+    <string name="error_no_internet">Internet ma jiro. Fadlan check gari internetkaaga.</string>
+    <string name="retry">Isku day mar kale</string>
+</resources>
