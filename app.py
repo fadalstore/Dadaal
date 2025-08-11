@@ -2233,14 +2233,6 @@ def wholesale_signup():
         if 'conn' in locals():
             conn.close()
 
-    except Exception as e:
-        print(f"Wholesale signup error: {e}")
-        if request.content_type == 'application/json':
-            return {'success': False, 'error': f'Error: {str(e)}'}
-        else:
-            flash('Khalad ayaa dhacay application submit-ka.')
-            return redirect(url_for('wholesale'))
-
 @app.route('/wholesale/dashboard')
 @login_required
 def wholesale_dashboard():
