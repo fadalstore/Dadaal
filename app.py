@@ -12,10 +12,16 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import random
+from translations import translator, t
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'dadaal_secret_key_2025_change_in_production')
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=24)
+
+# Make translation function available in templates
+@app.context_processor
+def inject_translation():
+    return dict(t=t, current_lang=translator.get_language())
 
 # Security functions
 def hash_password(password):
@@ -405,6 +411,16 @@ def log_user_activity(user_id, activity_type, description):
         conn.close()
     except Exception as e:
         print(f"Error logging user activity: {e}")
+
+@app.route('/set_language/<language>')
+def set_language(language):
+    if translator.set_language(language):
+        flash(f'Language changed to {language}')
+    else:
+        flash('Language not supported')
+    
+    # Redirect back to the previous page or home
+    return redirect(request.referrer or url_for('home'))
 
 @app.route('/')
 def home():

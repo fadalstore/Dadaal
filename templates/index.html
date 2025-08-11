@@ -24,11 +24,12 @@
         <div class="header-container">
             <div class="logo-section">
                 <div class="hamburger-menu">☰</div>
-                <h1 class="site-logo">DADAAL APP</h1>
+                <h1 class="site-logo">{{ t('app_name') }}</h1>
             </div>
             <div class="header-actions">
-                <a href="{{ url_for('login') }}" class="login-btn">GAL</a>
-                <a href="{{ url_for('register') }}" class="register-btn">DIIWAAN GELI</a>
+                {% include 'language_selector.html' %}
+                <a href="{{ url_for('login') }}" class="login-btn">{{ t('login') }}</a>
+                <a href="{{ url_for('register') }}" class="register-btn">{{ t('register') }}</a>
             </div>
         </div>
     </header>
@@ -37,15 +38,15 @@
     <nav class="main-nav">
         <div class="nav-container">
             <ul class="nav-tabs">
-                <li class="nav-tab active"><a href="/">Hore</a></li>
-                <li class="nav-tab"><a href="/payment">Lacag shubo</a></li>
-                <li class="nav-tab"><a href="/dashboard">Dashboard</a></li>
-                <li class="nav-tab"><a href="/gifts">Hadiyado</a></li>
-                <li class="nav-tab"><a href="/ads">Xayeysiisyo</a></li>
-                <li class="nav-tab"><a href="/referral">Invite Friends</a></li>
-                <li class="nav-tab"><a href="/premium">Premium</a></li>
-                <li class="nav-tab"><a href="/affiliate">Affiliate</a></li>
-                <li class="nav-tab"><a href="/earnings">Dakhli</a></li>
+                <li class="nav-tab active"><a href="/">{{ t('home') }}</a></li>
+                <li class="nav-tab"><a href="/payment">{{ t('payment') }}</a></li>
+                <li class="nav-tab"><a href="/dashboard">{{ t('dashboard') }}</a></li>
+                <li class="nav-tab"><a href="/gifts">{{ t('gifts') }}</a></li>
+                <li class="nav-tab"><a href="/ads">{{ t('ads') }}</a></li>
+                <li class="nav-tab"><a href="/referral">{{ t('referral') }}</a></li>
+                <li class="nav-tab"><a href="/premium">{{ t('premium') }}</a></li>
+                <li class="nav-tab"><a href="/affiliate">{{ t('affiliate') }}</a></li>
+                <li class="nav-tab"><a href="/earnings">{{ t('earnings') }}</a></li>
             </ul>
         </div>
     </nav>
@@ -54,20 +55,20 @@
     <section class="hero-section">
         <div class="hero-container">
             <div class="hero-content">
-                <h2 class="hero-title">💰 Ku Bilaw Lacag Samynta Maanta!</h2>
-                <p class="hero-subtitle">Nidaamka ugu fiican ee lacag samynta online-ka ah</p>
+                <h2 class="hero-title">{{ t('hero_title') }}</h2>
+                <p class="hero-subtitle">{{ t('hero_subtitle') }}</p>
                 <div class="hero-stats">
                     <div class="stat-item">
                         <span class="stat-number">${{ "%.2f"|format(earnings) }}</span>
-                        <span class="stat-label">Lacagta la helay</span>
+                        <span class="stat-label">{{ t('total_earnings') }}</span>
                     </div>
                     <div class="stat-item">
                         <span class="stat-number">5,000+</span>
-                        <span class="stat-label">Users</span>
+                        <span class="stat-label">{{ t('users') }}</span>
                     </div>
                     <div class="stat-item">
                         <span class="stat-number">24/7</span>
-                        <span class="stat-label">Support</span>
+                        <span class="stat-label">{{ t('support') }}</span>
                     </div>
                 </div>
             </div>
@@ -79,36 +80,36 @@
         <div class="content-grid">
             <!-- Featured Services -->
             <section class="featured-services">
-                <h3 class="section-title">🚀 Adeegyada Ugu Waaweyn</h3>
+                <h3 class="section-title">{{ t('featured_services') }}</h3>
 
                 <div class="service-cards">
                     <div class="service-card featured">
                         <div class="card-image">💰</div>
                         <div class="card-content">
-                            <h4>Referral Program</h4>
-                            <p>Hel $5 qof walba oo aad soo dirtid</p>
+                            <h4>{{ t('referral_program') }}</h4>
+                            <p>{{ t('referral_desc') }}</p>
                             <span class="earning-badge">$5 / Referral</span>
-                            <a href="/referral" class="card-btn">Bilaw hadda</a>
+                            <a href="/referral" class="card-btn">{{ t('start_now') }}</a>
                         </div>
                     </div>
 
                     <div class="service-card">
                         <div class="card-image">⭐</div>
                         <div class="card-content">
-                            <h4>Premium Account</h4>
-                            <p>5x lacag badan oo bonuses ah</p>
+                            <h4>{{ t('premium_account') }}</h4>
+                            <p>{{ t('premium_desc') }}</p>
                             <span class="earning-badge">$20 / Month</span>
-                            <a href="/premium" class="card-btn">Upgrade</a>
+                            <a href="/premium" class="card-btn">{{ t('upgrade') }}</a>
                         </div>
                     </div>
 
                     <div class="service-card">
                         <div class="card-image">📈</div>
                         <div class="card-content">
-                            <h4>Affiliate Marketing</h4>
-                            <p>20% commission dhammaan sales-ka</p>
+                            <h4>{{ t('affiliate_marketing') }}</h4>
+                            <p>{{ t('affiliate_desc') }}</p>
                             <span class="earning-badge">20% Commission</span>
-                            <a href="/affiliate" class="card-btn">Join Now</a>
+                            <a href="/affiliate" class="card-btn">{{ t('join_now') }}</a>
                         </div>
                     </div>
                 </div>
@@ -116,26 +117,26 @@
 
             <!-- Quick Actions -->
             <aside class="quick-actions">
-                <h3 class="section-title">⚡ Quick Actions</h3>
+                <h3 class="section-title">{{ t('quick_actions') }}</h3>
                 <div class="action-list">
                     <a href="/payment" class="action-item">
                         <span class="action-icon">💳</span>
-                        <span class="action-text">Lacag shubo</span>
+                        <span class="action-text">{{ t('payment') }}</span>
                         <span class="action-arrow">→</span>
                     </a>
                     <a href="/dashboard" class="action-item">
                         <span class="action-icon">📊</span>
-                        <span class="action-text">Dashboard</span>
+                        <span class="action-text">{{ t('dashboard') }}</span>
                         <span class="action-arrow">→</span>
                     </a>
                     <a href="/gifts" class="action-item">
                         <span class="action-icon">🎁</span>
-                        <span class="action-text">Hadiyado</span>
+                        <span class="action-text">{{ t('gifts') }}</span>
                         <span class="action-arrow">→</span>
                     </a>
                     <a href="/earnings" class="action-item">
                         <span class="action-icon">💼</span>
-                        <span class="action-text">Earnings</span>
+                        <span class="action-text">{{ t('earnings') }}</span>
                         <span class="action-arrow">→</span>
                     </a>
                 </div>

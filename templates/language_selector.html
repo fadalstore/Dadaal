@@ -1,0 +1,139 @@
+
+<div class="language-selector">
+    <button class="lang-btn" onclick="toggleLangDropdown()">
+        <span class="flag-icon">
+            {% if current_lang == 'so' %}🇸🇴
+            {% elif current_lang == 'en' %}🇺🇸
+            {% elif current_lang == 'ar' %}🇸🇦
+            {% elif current_lang == 'fr' %}🇫🇷
+            {% endif %}
+        </span>
+        <span class="lang-text">
+            {% if current_lang == 'so' %}Soomaali
+            {% elif current_lang == 'en' %}English
+            {% elif current_lang == 'ar' %}العربية
+            {% elif current_lang == 'fr' %}Français
+            {% endif %}
+        </span>
+        <span class="dropdown-arrow">▼</span>
+    </button>
+    
+    <div class="lang-dropdown" id="langDropdown">
+        <a href="{{ url_for('set_language', language='so') }}" class="lang-option {% if current_lang == 'so' %}active{% endif %}">
+            🇸🇴 Soomaali
+        </a>
+        <a href="{{ url_for('set_language', language='en') }}" class="lang-option {% if current_lang == 'en' %}active{% endif %}">
+            🇺🇸 English
+        </a>
+        <a href="{{ url_for('set_language', language='ar') }}" class="lang-option {% if current_lang == 'ar' %}active{% endif %}">
+            🇸🇦 العربية
+        </a>
+        <a href="{{ url_for('set_language', language='fr') }}" class="lang-option {% if current_lang == 'fr' %}active{% endif %}">
+            🇫🇷 Français
+        </a>
+    </div>
+</div>
+
+<style>
+.language-selector {
+    position: relative;
+    display: inline-block;
+}
+
+.lang-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.lang-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.lang-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    display: none;
+    min-width: 150px;
+    z-index: 1000;
+}
+
+.lang-dropdown.show {
+    display: block;
+}
+
+.lang-option {
+    display: block;
+    padding: 10px 15px;
+    color: #333;
+    text-decoration: none;
+    border-bottom: 1px solid #eee;
+    transition: all 0.2s ease;
+}
+
+.lang-option:hover {
+    background: #f8f9fa;
+    color: #667eea;
+}
+
+.lang-option.active {
+    background: #667eea;
+    color: white;
+}
+
+.lang-option:last-child {
+    border-bottom: none;
+    border-radius: 0 0 10px 10px;
+}
+
+.lang-option:first-child {
+    border-radius: 10px 10px 0 0;
+}
+
+.dropdown-arrow {
+    font-size: 10px;
+    transition: transform 0.2s ease;
+}
+
+.lang-btn.open .dropdown-arrow {
+    transform: rotate(180deg);
+}
+</style>
+
+<script>
+function toggleLangDropdown() {
+    const dropdown = document.getElementById('langDropdown');
+    const btn = document.querySelector('.lang-btn');
+    
+    if (dropdown.classList.contains('show')) {
+        dropdown.classList.remove('show');
+        btn.classList.remove('open');
+    } else {
+        dropdown.classList.add('show');
+        btn.classList.add('open');
+    }
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', function(event) {
+    const selector = document.querySelector('.language-selector');
+    if (!selector.contains(event.target)) {
+        document.getElementById('langDropdown').classList.remove('show');
+        document.querySelector('.lang-btn').classList.remove('open');
+    }
+});
+</script>
