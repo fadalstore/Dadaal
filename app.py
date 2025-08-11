@@ -315,6 +315,67 @@ def init_db():
         )
     ''')
 
+    # Wholesale partners table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS wholesale_partners (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            company_name TEXT NOT NULL,
+            contact_person TEXT NOT NULL,
+            business_email TEXT NOT NULL,
+            business_phone TEXT,
+            website TEXT,
+            business_type TEXT NOT NULL,
+            product_category TEXT NOT NULL,
+            business_description TEXT,
+            monthly_volume REAL DEFAULT 0,
+            commission_tier TEXT DEFAULT 'bronze',
+            status TEXT DEFAULT 'pending',
+            approved_at TIMESTAMP,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users (id)
+        )
+    ''')
+
+    # Wholesale products table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS wholesale_products (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            partner_id INTEGER NOT NULL,
+            product_name TEXT NOT NULL,
+            description TEXT,
+            price REAL NOT NULL,
+            wholesale_price REAL,
+            category TEXT,
+            sku TEXT UNIQUE,
+            stock_quantity INTEGER DEFAULT 0,
+            commission_rate REAL DEFAULT 0.15,
+            status TEXT DEFAULT 'active',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (partner_id) REFERENCES wholesale_partners (id)
+        )
+    ''')
+
+    # Wholesale sales table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS wholesale_sales (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            product_id INTEGER NOT NULL,
+            partner_id INTEGER NOT NULL,
+            buyer_id INTEGER NOT NULL,
+            quantity INTEGER NOT NULL,
+            unit_price REAL NOT NULL,
+            total_amount REAL NOT NULL,
+            commission_amount REAL NOT NULL,
+            commission_rate REAL NOT NULL,
+            status TEXT DEFAULT 'completed',
+            sale_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (product_id) REFERENCES wholesale_products (id),
+            FOREIGN KEY (partner_id) REFERENCES wholesale_partners (id),
+            FOREIGN KEY (buyer_id) REFERENCES users (id)
+        )
+    ''')
+
     # Create indexes for better performance
     cursor.execute('CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)')
     cursor.execute('CREATE INDEX IF NOT EXISTS idx_users_referral_code ON users(referral_code)')
@@ -1714,6 +1775,244 @@ def robots_txt():
     return """User-agent: *
 Allow: /
 Sitemap: https://dadaal.onrender.com/sitemap.xml""", 200, {'Content-Type': 'text/plain'}
+
+@app.route('/wholesale')
+def wholesale():
+    """Wholesale/Distributor program main page"""
+    return render_template('wholesale.html')
+
+@app.route('/wholesale_signup', methods=['POST'])
+def wholesale_signup():
+    """Handle wholesale partner signup"""
+    try:
+        if request.content_type == 'application/json':
+            data = request.get_json()
+        else:
+            data = request.form.to_dict()
+        
+        # Extract form data
+        company_name = sanitize_input(data.get('company_name'))
+        contact_person = sanitize_input(data.get('contact_person'))
+        business_email = sanitize_input(data.get('business_email'))
+        business_phone = sanitize_input(data.get('business_phone'))
+        website = sanitize_input(data.get('website', ''))
+        business_type = sanitize_input(data.get('business_type'))
+        product_category = sanitize_input(data.get('product_category'))
+        business_description = sanitize_input(data.get('business_description'))
+        monthly_volume = float(data.get('monthly_volume', 0))
+        
+        # Validation
+        if not all([company_name, contact_person, business_email, business_type, product_category]):
+            return {'success': False, 'error': 'Fadlan buuxi dhammaan qeybaha muhiimka ah'}
+        
+        if not validate_email(business_email):
+            return {'success': False, 'error': 'Business email format khalad'}
+        
+        # Determine commission tier based on monthly volume
+        if monthly_volume >= 10000:
+            commission_tier = 'diamond'
+        elif monthly_volume >= 5000:
+            commission_tier = 'gold'
+        elif monthly_volume >= 1000:
+            commission_tier = 'silver'
+        else:
+            commission_tier = 'bronze'
+        
+        conn = sqlite3.connect('dadaal.db')
+        cursor = conn.cursor()
+        
+        # Check if business email already exists
+        cursor.execute('SELECT id FROM wholesale_partners WHERE business_email = ?', (business_email,))
+        if cursor.fetchone():
+            return {'success': False, 'error': 'Business email-kan horay ayaa loo isticmaalay'}
+        
+        # Get user_id from session (if logged in) or create guest application
+        user_id = session.get('user_id')
+        if not user_id:
+            # Create a temporary user for this application
+            cursor.execute('''
+                INSERT INTO users (name, email, password_hash, status)
+                VALUES (?, ?, ?, 'wholesale_pending')
+            ''', (contact_person, business_email, hash_password('temp_password')))
+            user_id = cursor.lastrowid
+        
+        # Insert wholesale partner application
+        cursor.execute('''
+            INSERT INTO wholesale_partners (
+                user_id, company_name, contact_person, business_email, 
+                business_phone, website, business_type, product_category,
+                business_description, monthly_volume, commission_tier
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (user_id, company_name, contact_person, business_email,
+              business_phone, website, business_type, product_category,
+              business_description, monthly_volume, commission_tier))
+        
+        partner_id = cursor.lastrowid
+        
+        conn.commit()
+        conn.close()
+        
+        # Send notification email to admin
+        try:
+            send_wholesale_notification(company_name, contact_person, business_email)
+        except:
+            pass  # Don't fail if email fails
+        
+        if request.content_type == 'application/json':
+            return {'success': True, 'message': 'Application submitted successfully!', 'partner_id': partner_id}
+        else:
+            flash(f'Application waa la gudbiyay! Partner ID: WS-{partner_id:04d}. Waan kala soo xiriiri doonaa 24 saacadood gudahood.')
+            return redirect(url_for('wholesale_dashboard'))
+        
+    except Exception as e:
+        print(f"Wholesale signup error: {e}")
+        if request.content_type == 'application/json':
+            return {'success': False, 'error': f'Error: {str(e)}'}
+        else:
+            flash('Khalad ayaa dhacay application submit-ka.')
+            return redirect(url_for('wholesale'))
+
+@app.route('/wholesale/dashboard')
+@login_required
+def wholesale_dashboard():
+    """Wholesale partner dashboard"""
+    try:
+        conn = sqlite3.connect('dadaal.db')
+        cursor = conn.cursor()
+        
+        # Get partner info
+        cursor.execute('''
+            SELECT * FROM wholesale_partners 
+            WHERE user_id = ? 
+            ORDER BY created_at DESC LIMIT 1
+        ''', (session['user_id'],))
+        partner_data = cursor.fetchone()
+        
+        if not partner_data:
+            flash('Ma lihid wholesale partner account. Fadlan apply-ka.')
+            return redirect(url_for('wholesale'))
+        
+        # Get partner's products
+        cursor.execute('''
+            SELECT * FROM wholesale_products 
+            WHERE partner_id = ? 
+            ORDER BY created_at DESC
+        ''', (partner_data[0],))
+        products = cursor.fetchall()
+        
+        # Get sales stats
+        cursor.execute('''
+            SELECT COUNT(*), SUM(total_amount), SUM(commission_amount)
+            FROM wholesale_sales 
+            WHERE partner_id = ?
+        ''', (partner_data[0],))
+        sales_stats = cursor.fetchone()
+        
+        # Get recent sales
+        cursor.execute('''
+            SELECT ws.*, wp.product_name, u.name as buyer_name
+            FROM wholesale_sales ws
+            JOIN wholesale_products wp ON ws.product_id = wp.id
+            JOIN users u ON ws.buyer_id = u.id
+            WHERE ws.partner_id = ?
+            ORDER BY ws.sale_date DESC
+            LIMIT 10
+        ''', (partner_data[0],))
+        recent_sales = cursor.fetchall()
+        
+        conn.close()
+        
+        return render_template('wholesale_dashboard.html',
+                             partner_data=partner_data,
+                             products=products,
+                             sales_stats=sales_stats,
+                             recent_sales=recent_sales)
+        
+    except Exception as e:
+        flash('Khalad ayaa dhacay dashboard-ka.')
+        return redirect(url_for('wholesale'))
+
+@app.route('/wholesale/add_product', methods=['POST'])
+@login_required
+def add_wholesale_product():
+    """Add product to wholesale catalog"""
+    try:
+        # Get form data
+        product_name = sanitize_input(request.form.get('product_name'))
+        description = sanitize_input(request.form.get('description'))
+        price = float(request.form.get('price'))
+        wholesale_price = float(request.form.get('wholesale_price', price * 0.7))
+        category = sanitize_input(request.form.get('category'))
+        sku = sanitize_input(request.form.get('sku'))
+        stock_quantity = int(request.form.get('stock_quantity', 0))
+        
+        if not all([product_name, price > 0, category]):
+            flash('Fadlan buuxi dhammaan macluumaadka product-ka.')
+            return redirect(url_for('wholesale_dashboard'))
+        
+        conn = sqlite3.connect('dadaal.db')
+        cursor = conn.cursor()
+        
+        # Get partner ID
+        cursor.execute('SELECT id FROM wholesale_partners WHERE user_id = ?', (session['user_id'],))
+        partner = cursor.fetchone()
+        
+        if not partner:
+            flash('Ma lihid wholesale partner account.')
+            return redirect(url_for('wholesale'))
+        
+        # Generate SKU if not provided
+        if not sku:
+            sku = f"WS-{partner[0]}-{secrets.token_hex(4).upper()}"
+        
+        # Insert product
+        cursor.execute('''
+            INSERT INTO wholesale_products (
+                partner_id, product_name, description, price, wholesale_price,
+                category, sku, stock_quantity
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (partner[0], product_name, description, price, wholesale_price,
+              category, sku, stock_quantity))
+        
+        conn.commit()
+        conn.close()
+        
+        flash(f'Product "{product_name}" waa la ku daray catalog-ga!')
+        return redirect(url_for('wholesale_dashboard'))
+        
+    except Exception as e:
+        flash('Khalad ayaa dhacay product-ka ku darista.')
+        return redirect(url_for('wholesale_dashboard'))
+
+def send_wholesale_notification(company_name, contact_person, business_email):
+    """Send notification to admin about new wholesale application"""
+    try:
+        admin_email = os.environ.get('ADMIN_EMAIL', 'admin@dadaal.com')
+        
+        subject = f"New Wholesale Partner Application: {company_name}"
+        body = f"""
+        New wholesale partner application received:
+        
+        Company: {company_name}
+        Contact: {contact_person}
+        Email: {business_email}
+        
+        Please review the application in the admin dashboard.
+        """
+        
+        # Use existing email system
+        msg = MIMEMultipart()
+        msg['From'] = os.environ.get('GMAIL_USER', 'noreply@dadaal.com')
+        msg['To'] = admin_email
+        msg['Subject'] = subject
+        msg.attach(MIMEText(body, 'plain'))
+        
+        print(f"Wholesale notification: {subject}")
+        return True
+        
+    except Exception as e:
+        print(f"Failed to send wholesale notification: {e}")
+        return False
 
 @app.route('/contact', methods=['GET', 'POST'])
 def contact():

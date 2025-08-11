@@ -1,0 +1,204 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏢 Wholesale Dashboard - Dadaal App</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        .dashboard-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #27ae60;
+            margin: 10px 0;
+        }
+        
+        .add-product-form {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            margin: 20px 0;
+        }
+        
+        .products-table {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .table th, .table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e1e5e9;
+        }
+        
+        .table th {
+            background: #f8f9fa;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏢 Wholesale Dashboard</h1>
+        
+        {% if partner_data %}
+            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 15px; margin: 20px 0;">
+                <h2>{{ partner_data[2] }}</h2>
+                <p><strong>Status:</strong> {{ partner_data[12].title() }}</p>
+                <p><strong>Commission Tier:</strong> {{ partner_data[11].title() }}</p>
+                <p><strong>Business Type:</strong> {{ partner_data[7] }}</p>
+            </div>
+
+            <!-- Dashboard Stats -->
+            <div class="dashboard-stats">
+                <div class="stat-card">
+                    <h3>📦 Total Products</h3>
+                    <div class="stat-number">{{ products|length }}</div>
+                </div>
+                
+                <div class="stat-card">
+                    <h3>💰 Total Sales</h3>
+                    <div class="stat-number">${{ "%.2f"|format(sales_stats[1] or 0) }}</div>
+                </div>
+                
+                <div class="stat-card">
+                    <h3>🎯 Total Commission</h3>
+                    <div class="stat-number">${{ "%.2f"|format(sales_stats[2] or 0) }}</div>
+                </div>
+                
+                <div class="stat-card">
+                    <h3>📊 Orders Count</h3>
+                    <div class="stat-number">{{ sales_stats[0] or 0 }}</div>
+                </div>
+            </div>
+
+            <!-- Add Product Form -->
+            <div class="add-product-form">
+                <h2>➕ Add New Product</h2>
+                <form method="POST" action="/wholesale/add_product">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <input type="text" name="product_name" placeholder="Product Name" required style="padding: 12px; border: 2px solid #e1e5e9; border-radius: 8px;">
+                        <input type="number" name="price" step="0.01" placeholder="Retail Price ($)" required style="padding: 12px; border: 2px solid #e1e5e9; border-radius: 8px;">
+                        <input type="number" name="wholesale_price" step="0.01" placeholder="Wholesale Price ($)" style="padding: 12px; border: 2px solid #e1e5e9; border-radius: 8px;">
+                        <select name="category" required style="padding: 12px; border: 2px solid #e1e5e9; border-radius: 8px;">
+                            <option value="">Select Category</option>
+                            <option value="electronics">Electronics</option>
+                            <option value="clothing">Clothing</option>
+                            <option value="home_garden">Home & Garden</option>
+                            <option value="health_beauty">Health & Beauty</option>
+                            <option value="sports">Sports</option>
+                            <option value="books">Books</option>
+                            <option value="food">Food</option>
+                            <option value="other">Other</option>
+                        </select>
+                        <input type="text" name="sku" placeholder="SKU (Auto-generated if empty)" style="padding: 12px; border: 2px solid #e1e5e9; border-radius: 8px;">
+                        <input type="number" name="stock_quantity" placeholder="Stock Quantity" style="padding: 12px; border: 2px solid #e1e5e9; border-radius: 8px;">
+                    </div>
+                    <textarea name="description" placeholder="Product Description" rows="3" style="width: 100%; padding: 12px; border: 2px solid #e1e5e9; border-radius: 8px; margin: 15px 0;"></textarea>
+                    <button type="submit" style="background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%); color: white; border: none; padding: 12px 25px; border-radius: 8px; font-weight: bold; cursor: pointer;">Add Product</button>
+                </form>
+            </div>
+
+            <!-- Products Table -->
+            <div class="products-table">
+                <h2 style="padding: 20px; margin: 0; background: #f8f9fa;">📦 Your Products</h2>
+                {% if products %}
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Product Name</th>
+                                <th>SKU</th>
+                                <th>Retail Price</th>
+                                <th>Wholesale Price</th>
+                                <th>Stock</th>
+                                <th>Status</th>
+                                <th>Created</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for product in products %}
+                            <tr>
+                                <td><strong>{{ product[2] }}</strong><br><small>{{ product[3][:50] }}...</small></td>
+                                <td>{{ product[6] }}</td>
+                                <td>${{ "%.2f"|format(product[4]) }}</td>
+                                <td>${{ "%.2f"|format(product[5] or 0) }}</td>
+                                <td>{{ product[8] }}</td>
+                                <td><span style="background: {% if product[10] == 'active' %}#27ae60{% else %}#e74c3c{% endif %}; color: white; padding: 5px 10px; border-radius: 15px; font-size: 12px;">{{ product[10].title() }}</span></td>
+                                <td>{{ product[11][:10] }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <div style="text-align: center; padding: 60px; color: #666;">
+                        <h3>📦 No products yet</h3>
+                        <p>Add your first product to start selling!</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Recent Sales -->
+            {% if recent_sales %}
+            <div class="products-table" style="margin-top: 30px;">
+                <h2 style="padding: 20px; margin: 0; background: #f8f9fa;">💰 Recent Sales</h2>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Buyer</th>
+                            <th>Quantity</th>
+                            <th>Total</th>
+                            <th>Commission</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for sale in recent_sales %}
+                        <tr>
+                            <td>{{ sale[11] }}</td>
+                            <td>{{ sale[12] }}</td>
+                            <td>{{ sale[3] }}</td>
+                            <td>${{ "%.2f"|format(sale[5]) }}</td>
+                            <td style="color: #27ae60; font-weight: bold;">${{ "%.2f"|format(sale[6]) }}</td>
+                            <td>{{ sale[9][:10] }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
+
+        {% else %}
+            <div style="text-align: center; padding: 60px; color: #666;">
+                <h2>🏢 No Wholesale Account Found</h2>
+                <p>You need to apply for a wholesale partner account first.</p>
+                <a href="/wholesale" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold;">Apply Now</a>
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>

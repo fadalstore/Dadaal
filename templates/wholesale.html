@@ -1,0 +1,233 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏢 Wholesale Distribution Program - Dadaal App</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        .wholesale-hero {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 60px 20px;
+            text-align: center;
+        }
+        
+        .benefits-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin: 40px 0;
+        }
+        
+        .benefit-card {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+        
+        .benefit-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .commission-tier {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin: 15px 0;
+            text-align: center;
+        }
+        
+        .signup-form {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            margin: 40px 0;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        
+        .submit-btn {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+        
+        .submit-btn:hover {
+            box-shadow: 0 10px 25px rgba(240, 147, 251, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="wholesale-hero">
+        <h1>🏢 Wholesale Distribution Program</h1>
+        <p>Ku biir programka ugu weyn ee wholesaler-ada iyo distributor-ada</p>
+        <h2>💰 Hel lacag ilaa 40% commission!</h2>
+    </div>
+
+    <div class="container">
+        <!-- Benefits Section -->
+        <h2 style="text-align: center; margin: 40px 0;">🎯 Faa'iidooyinka Program-ka</h2>
+        
+        <div class="benefits-grid">
+            <div class="benefit-card">
+                <h3>⚡ Lacag Dhaqso</h3>
+                <p>Markii cidi iibsato, lacagta isla markiiba ayaa lagugu soo darayaa account-kaaga</p>
+            </div>
+            
+            <div class="benefit-card">
+                <h3>📊 Real-time Analytics</h3>
+                <p>Arag sales-kaaga, customers-kaaga, iyo earnings-kaaga hal meel</p>
+            </div>
+            
+            <div class="benefit-card">
+                <h3>🛠️ Marketing Tools</h3>
+                <p>Hel tools la'aanta ah si aad u xayaysiiso products-kaaga</p>
+            </div>
+            
+            <div class="benefit-card">
+                <h3>🌍 Global Reach</h3>
+                <p>Iibiya adduunka oo dhan, lacag hel dalalka kala duwan</p>
+            </div>
+        </div>
+
+        <!-- Commission Tiers -->
+        <h2 style="text-align: center; margin: 40px 0;">💰 Commission Levels</h2>
+        
+        <div class="commission-tier">
+            <h3>🥉 Bronze Level - 15% Commission</h3>
+            <p>Bilaha kasta $0 - $999 sales</p>
+        </div>
+        
+        <div class="commission-tier">
+            <h3>🥈 Silver Level - 25% Commission</h3>
+            <p>Bilaha kasta $1,000 - $4,999 sales</p>
+        </div>
+        
+        <div class="commission-tier">
+            <h3>🥇 Gold Level - 35% Commission</h3>
+            <p>Bilaha kasta $5,000 - $9,999 sales</p>
+        </div>
+        
+        <div class="commission-tier" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+            <h3>💎 Diamond Level - 40% Commission</h3>
+            <p>Bilaha kasta $10,000+ sales</p>
+        </div>
+
+        <!-- Registration Form -->
+        <div class="signup-form">
+            <h2 style="text-align: center; margin-bottom: 30px;">📝 Ku Biir Hadda!</h2>
+            
+            <form method="POST" action="/wholesale_signup">
+                <input type="text" name="company_name" placeholder="Magaca Shirkadda" class="form-input" required>
+                <input type="text" name="contact_person" placeholder="Magaca Contact Person" class="form-input" required>
+                <input type="email" name="business_email" placeholder="Business Email" class="form-input" required>
+                <input type="tel" name="business_phone" placeholder="Business Phone" class="form-input" required>
+                <input type="text" name="website" placeholder="Website (Optional)" class="form-input">
+                
+                <select name="business_type" class="form-input" required>
+                    <option value="">Dooro Business Type</option>
+                    <option value="manufacturer">Manufacturer</option>
+                    <option value="distributor">Distributor</option>
+                    <option value="retailer">Retailer</option>
+                    <option value="wholesaler">Wholesaler</option>
+                    <option value="dropshipper">Dropshipper</option>
+                    <option value="other">Other</option>
+                </select>
+                
+                <select name="product_category" class="form-input" required>
+                    <option value="">Nooca Products-ka aad iibiso</option>
+                    <option value="electronics">Electronics</option>
+                    <option value="clothing">Clothing & Fashion</option>
+                    <option value="home_garden">Home & Garden</option>
+                    <option value="health_beauty">Health & Beauty</option>
+                    <option value="sports">Sports & Outdoors</option>
+                    <option value="books_media">Books & Media</option>
+                    <option value="food_beverages">Food & Beverages</option>
+                    <option value="automotive">Automotive</option>
+                    <option value="other">Other</option>
+                </select>
+                
+                <textarea name="business_description" placeholder="Ka waran shirkaddaada iyo waxaad iibiso" class="form-input" rows="4" required></textarea>
+                
+                <input type="number" name="monthly_volume" placeholder="Monthly Sales Volume ($)" class="form-input" min="0">
+                
+                <label style="display: flex; align-items: center; margin: 20px 0;">
+                    <input type="checkbox" required style="margin-right: 10px;">
+                    Waan aqbalay <a href="/terms">Terms & Conditions</a>
+                </label>
+                
+                <button type="submit" class="submit-btn">🚀 Submit Application</button>
+            </form>
+        </div>
+
+        <!-- Success Stories -->
+        <h2 style="text-align: center; margin: 40px 0;">🌟 Success Stories</h2>
+        
+        <div class="benefits-grid">
+            <div class="benefit-card">
+                <h4>Ahmed Electronics Ltd.</h4>
+                <p>"First month waxaan ka helay $3,200 commission! Amazing platform!"</p>
+                <strong>Monthly Earnings: $3,200+</strong>
+            </div>
+            
+            <div class="benefit-card">
+                <h4>Somali Fashion House</h4>
+                <p>"Sales-kaygu 300% ayuu u kordheeyay since I joined!"</p>
+                <strong>Monthly Earnings: $5,800+</strong>
+            </div>
+            
+            <div class="benefit-card">
+                <h4>Tech Solutions Pro</h4>
+                <p>"Best decision for my business. Real-time payments are game changer!"</p>
+                <strong>Monthly Earnings: $8,500+</strong>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Form submission handler
+        document.querySelector('form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Collect form data
+            const formData = new FormData(this);
+            
+            // Submit to backend
+            fetch('/wholesale_signup', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Application waa la gudbiyay! Waan kala soo xiriiri doonaa 24 saacadood gudahood.');
+                    window.location.href = '/dashboard';
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
