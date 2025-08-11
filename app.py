@@ -2208,29 +2208,30 @@ def wholesale_signup():
 
         conn.commit()
 
-            # Send notification email to admin
-            try:
-                send_wholesale_notification(company_name, contact_person, business_email)
-            except:
-                pass  # Don't fail if email fails
+        # Send notification email to admin
+        try:
+            send_wholesale_notification(company_name, contact_person, business_email)
+        except:
+            pass  # Don't fail if email fails
 
-            if request.content_type == 'application/json':
-                return {'success': True, 'message': 'Application waa la gudbiyay si guul leh!', 'partner_id': partner_id}
-            else:
-                flash(f'Guul! Application waa la gudbiyay. Partner ID: WS-{partner_id:04d}. Waan kala soo xiriiri doonaa 24 saacadood gudahood.')
-                return redirect(url_for('wholesale_dashboard'))
+        if request.content_type == 'application/json':
+            return {'success': True, 'message': 'Application waa la gudbiyay si guul leh!', 'partner_id': partner_id}
+        else:
+            flash(f'Guul! Application waa la gudbiyay. Partner ID: WS-{partner_id:04d}. Waan kala soo xiriiri doonaa 24 saacadood gudahood.')
+            return redirect(url_for('wholesale_dashboard'))
 
-        except Exception as db_error:
+    except Exception as db_error:
+        if 'conn' in locals():
             conn.rollback()
-            print(f"Database error in wholesale signup: {db_error}")
-            if request.content_type == 'application/json':
-                return {'success': False, 'error': f'Database error: {str(db_error)}'}
-            else:
-                flash('Khalad ayaa dhacay application submit-ka. Fadlan isku day mar kale.')
-                return redirect(url_for('wholesale'))
-        finally:
-            if conn:
-                conn.close()
+        print(f"Database error in wholesale signup: {db_error}")
+        if request.content_type == 'application/json':
+            return {'success': False, 'error': f'Database error: {str(db_error)}'}
+        else:
+            flash('Khalad ayaa dhacay application submit-ka. Fadlan isku day mar kale.')
+            return redirect(url_for('wholesale'))
+    finally:
+        if 'conn' in locals():
+            conn.close()
 
     except Exception as e:
         print(f"Wholesale signup error: {e}")
