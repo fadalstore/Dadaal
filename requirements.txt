@@ -1,19 +1,8 @@
 
-Flask==2.3.3
-Werkzeug==2.3.7
+Flask==3.0.0
+Werkzeug==3.0.1
 itsdangerous==2.1.2
 click==8.1.7
 blinker==1.6.3
 MarkupSafe==2.1.3
 Jinja2==3.1.2
-sqlite3
-hashlib
-secrets
-smtplib
-email
-datetime
-functools
-re
-random
-string
-os
