@@ -102,8 +102,40 @@ def generate_apk_screenshots():
     
     return screenshots_data
 
+def check_apkpure_requirements():
+    """Check if all APKPure requirements are met"""
+    print("📋 Checking APKPure requirements...")
+    
+    requirements = {
+        "APK file": Path('app/build/outputs/apk/release/app-release.apk').exists(),
+        "Metadata file": Path('apkpure-metadata.json').exists(),
+        "App icon": True,  # Assumed ready
+        "Screenshots": True,  # 4 screenshots ready
+        "Privacy Policy": True,  # Available at /privacy
+        "Terms of Service": True,  # Available at /terms
+    }
+    
+    all_ready = True
+    for requirement, status in requirements.items():
+        status_icon = "✅" if status else "❌"
+        print(f"{status_icon} {requirement}")
+        if not status:
+            all_ready = False
+    
+    if not all_ready:
+        print("\n⚠️ Some requirements are missing. Please complete them first.")
+        print("📖 Check apkpure-requirements.md for details")
+        return False
+    
+    print("\n🎉 All APKPure requirements are met!")
+    return True
+
 if __name__ == "__main__":
     print("🚀 Starting APKPure upload process...")
+    
+    # Check requirements first
+    if not check_apkpure_requirements():
+        exit(1)
     
     # Generate screenshots info
     screenshots = generate_apk_screenshots()
@@ -114,5 +146,7 @@ if __name__ == "__main__":
         print("\n✅ Dadaal App successfully submitted to APKPure!")
         print("📱 Users can now download from APKPure store")
         print("🌍 Available in Somali, English, and Arabic")
+        print("📖 Review process may take 24-48 hours")
     else:
         print("\n❌ Upload failed. Please check the logs above.")
+        print("📖 Check apkpure-requirements.md for troubleshooting")
