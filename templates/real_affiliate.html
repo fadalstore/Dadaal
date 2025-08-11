@@ -1,0 +1,261 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌟 Real Affiliate Marketing - Dadaal App</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        .affiliate-hero {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 50px 20px;
+            text-align: center;
+        }
+        
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 25px;
+            margin: 30px 0;
+        }
+        
+        .product-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+            position: relative;
+        }
+        
+        .product-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .platform-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .alibaba-badge {
+            background: #FF6A00;
+            color: white;
+        }
+        
+        .amazon-badge {
+            background: #FF9900;
+            color: white;
+        }
+        
+        .product-info {
+            padding: 20px;
+        }
+        
+        .product-price {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #27ae60;
+            margin: 10px 0;
+        }
+        
+        .commission-info {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .affiliate-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .affiliate-btn:hover {
+            box-shadow: 0 8px 20px rgba(39, 174, 96, 0.3);
+        }
+        
+        .earnings-stats {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            margin: 30px 0;
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #27ae60;
+        }
+    </style>
+</head>
+<body>
+    <div class="affiliate-hero">
+        <h1>🌟 Real Affiliate Marketing</h1>
+        <p>Xayaysiiso products-ka Alibaba, Amazon, AliExpress - Hel lacag dhabta ah!</p>
+        <h2>💰 Earn up to 20% Commission per Sale!</h2>
+    </div>
+
+    <div class="container">
+        <!-- Real-time Earnings Stats -->
+        <div class="earnings-stats">
+            <h2>📊 Your Affiliate Earnings</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin: 20px 0;">
+                <div>
+                    <div class="stat-number">${{ affiliate_earnings }}</div>
+                    <p>Total Earnings</p>
+                </div>
+                <div>
+                    <div class="stat-number">{{ clicks_today }}</div>
+                    <p>Clicks Today</p>
+                </div>
+                <div>
+                    <div class="stat-number">{{ conversions_month }}</div>
+                    <p>Sales This Month</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alibaba Products -->
+        <h2 style="text-align: center; margin: 40px 0;">🏭 Alibaba Products - Direct from Manufacturers</h2>
+        <div class="products-grid">
+            {% for product in alibaba_products %}
+            <div class="product-card">
+                <div class="platform-badge alibaba-badge">ALIBABA</div>
+                <div class="product-info">
+                    <h3>{{ product.name }}</h3>
+                    <div class="product-price">${{ "%.2f"|format(product.price) }}</div>
+                    <p><strong>Supplier:</strong> {{ product.supplier }}</p>
+                    <div class="commission-info">
+                        <strong>Your Commission: ${{ "%.2f"|format(product.price * product.commission_rate) }}</strong>
+                        <br>({{ "%.1f"|format(product.commission_rate * 100) }}% of sale)
+                    </div>
+                    <button class="affiliate-btn" onclick="promoteProduct('{{ product.id }}', 'alibaba', '{{ product.affiliate_url }}')">
+                        🔗 Get Affiliate Link & Promote
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Amazon Products -->
+        <h2 style="text-align: center; margin: 40px 0;">📦 Amazon Products - Global Bestsellers</h2>
+        <div class="products-grid">
+            {% for product in amazon_products %}
+            <div class="product-card">
+                <div class="platform-badge amazon-badge">AMAZON</div>
+                <div class="product-info">
+                    <h3>{{ product.name }}</h3>
+                    <div class="product-price">${{ "%.2f"|format(product.price) }}</div>
+                    <p><strong>Brand:</strong> {{ product.brand }}</p>
+                    <p><strong>Rating:</strong> ⭐ {{ product.rating }} ({{ product.reviews }} reviews)</p>
+                    <div class="commission-info">
+                        <strong>Your Commission: ${{ "%.2f"|format(product.price * product.commission_rate) }}</strong>
+                        <br>({{ "%.1f"|format(product.commission_rate * 100) }}% of sale)
+                    </div>
+                    <button class="affiliate-btn" onclick="promoteProduct('{{ product.id }}', 'amazon', '{{ product.affiliate_url }}')">
+                        🔗 Get Affiliate Link & Promote
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- How It Works -->
+        <div style="background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); margin: 40px 0;">
+            <h2 style="text-align: center;">🔥 How Real Affiliate Marketing Works</h2>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; margin: 30px 0;">
+                <div style="text-align: center;">
+                    <h3>1️⃣ Choose Products</h3>
+                    <p>Pick from thousands of real products from Alibaba, Amazon & more</p>
+                </div>
+                
+                <div style="text-align: center;">
+                    <h3>2️⃣ Get Your Link</h3>
+                    <p>Get unique affiliate link that tracks your sales</p>
+                </div>
+                
+                <div style="text-align: center;">
+                    <h3>3️⃣ Promote & Share</h3>
+                    <p>Share on social media, WhatsApp, websites, anywhere!</p>
+                </div>
+                
+                <div style="text-align: center;">
+                    <h3>4️⃣ Earn Money</h3>
+                    <p>Get instant commission when someone buys through your link!</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Success Tips -->
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 15px; margin: 30px 0;">
+            <h2 style="text-align: center;">💡 Success Tips</h2>
+            <ul style="font-size: 1.1em; line-height: 1.8;">
+                <li>🎯 <strong>Target your audience</strong> - Share products they actually need</li>
+                <li>📱 <strong>Use social media</strong> - WhatsApp, Facebook, Instagram, TikTok</li>
+                <li>✍️ <strong>Write reviews</strong> - Share honest product experiences</li>
+                <li>📹 <strong>Make videos</strong> - Product demonstrations work great</li>
+                <li>💬 <strong>Join groups</strong> - Find communities interested in these products</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        function promoteProduct(productId, platform, affiliateUrl) {
+            // Track the affiliate link generation
+            fetch('/track_affiliate_click', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    product_id: productId,
+                    platform: platform,
+                    action: 'generate_link'
+                })
+            });
+
+            // Create personalized affiliate link with user ID
+            const userId = {{ session.user_id if session.user_id else 'null' }};
+            const personalizedLink = `${affiliateUrl}&ref=dadaal_${userId}_${productId}`;
+            
+            // Copy to clipboard
+            navigator.clipboard.writeText(personalizedLink).then(() => {
+                alert(`✅ Affiliate link copied!\n\nYour earnings link:\n${personalizedLink}\n\nShare this link and earn money when people buy!`);
+            });
+
+            // Open the product page for reference
+            window.open(affiliateUrl, '_blank');
+        }
+
+        // Auto-refresh earnings every 30 seconds
+        setInterval(() => {
+            fetch('/affiliate_stats')
+                .then(response => response.json())
+                .then(data => {
+                    // Update earnings display
+                    if (data.success) {
+                        location.reload(); // Simple refresh for now
+                    }
+                });
+        }, 30000);
+    </script>
+</body>
+</html>
