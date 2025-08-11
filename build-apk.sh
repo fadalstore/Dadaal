@@ -1,8 +1,6 @@
 
 #!/bin/bash
-"""
-Build APK for APKPure deployment
-"""
+# Build APK for APKPure deployment
 
 echo "🔨 Building Dadaal App APK for APKPure..."
 
