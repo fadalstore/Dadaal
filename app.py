@@ -558,6 +558,7 @@ def admin_dashboard():
 @app.route('/dashboard')
 @login_required
 def dashboard():
+    conn = None
     try:
         conn = sqlite3.connect('dadaal.db')
         cursor = conn.cursor()
@@ -591,8 +592,6 @@ def dashboard():
         ''', (session['user_id'],))
         referral_stats = cursor.fetchone()
 
-        conn.close()
-
         return render_template('dashboard.html', 
                              user_data=user_data,
                              transactions=transactions,
@@ -602,6 +601,9 @@ def dashboard():
         flash('Khalad ayaa dhacay dashboard-ka la keenayay.')
         print(f"Dashboard error: {e}")
         return redirect(url_for('home'))
+    finally:
+        if conn:
+            conn.close()
 
 @app.route('/payment', methods=['GET', 'POST'])
 @login_required
@@ -1214,6 +1216,7 @@ def forgot_password():
 
 @app.route('/reset_password/<token>', methods=['GET', 'POST'])
 def reset_password(token):
+    conn = None
     try:
         conn = sqlite3.connect('dadaal.db')
         cursor = conn.cursor()
@@ -1230,7 +1233,6 @@ def reset_password(token):
 
         if not token_data:
             flash('Password reset link-ku wuu dhacay ama waa la isticmaalay.')
-            conn.close()
             return redirect(url_for('login'))
 
         if request.method == 'POST':
@@ -1255,18 +1257,19 @@ def reset_password(token):
                          (token_data[0],))
 
             conn.commit()
-            conn.close()
 
             flash('Password-kaaga si guul leh ayaa loo beddelay! Hadda gal akoonkaaga.')
             return redirect(url_for('login'))
 
-        conn.close()
         return render_template('reset_password.html', token=token, user_name=token_data[3])
 
     except Exception as e:
         flash('Khalad ayaa dhacay. Fadlan isku day mar kale.')
         print(f"Reset password error: {e}")
         return redirect(url_for('login'))
+    finally:
+        if conn:
+            conn.close()
 
 @app.route('/verify_email', methods=['GET', 'POST'])
 def verify_email():
@@ -1281,6 +1284,7 @@ def verify_email():
             flash('Fadlan gali verification code-ka.')
             return render_template('verify_email.html')
 
+        conn = None
         try:
             conn = sqlite3.connect('dadaal.db')
             cursor = conn.cursor()
@@ -1341,13 +1345,15 @@ def verify_email():
                 return redirect(url_for('dashboard'))
             else:
                 flash('Verification code khalad ama wuu dhacay. Fadlan isku day mar kale.')
-                conn.close()
                 return render_template('verify_email.html')
 
         except Exception as e:
             flash('Khalad ayaa dhacay verification-ka. Fadlan isku day mar kale.')
             print(f"Email verification error: {e}")
             return render_template('verify_email.html')
+        finally:
+            if conn:
+                conn.close()
 
     return render_template('verify_email.html', email=session['pending_user']['email'])
 
@@ -1356,6 +1362,7 @@ def resend_verification():
     if 'pending_user' not in session:
         return {'success': False, 'error': 'No pending verification found'}
 
+    conn = None
     try:
         email = session['pending_user']['email']
         verification_code = generate_verification_code()
@@ -1371,7 +1378,6 @@ def resend_verification():
         ''', (email, verification_code, expires_at))
 
         conn.commit()
-        conn.close()
 
         # Send new verification email
         if send_verification_email(email, verification_code):
@@ -1382,6 +1388,9 @@ def resend_verification():
     except Exception as e:
         print(f"Resend verification error: {e}")
         return {'success': False, 'error': 'Technical error occurred'}
+    finally:
+        if conn:
+            conn.close()
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -1393,13 +1402,13 @@ def login():
             flash('Fadlan geli email iyo password.')
             return render_template('login.html')
 
+        conn = None
         try:
             conn = sqlite3.connect('dadaal.db')
             cursor = conn.cursor()
             cursor.execute('SELECT id, name, password_hash, status FROM users WHERE email = ?', (email,))
             user = cursor.fetchone()
-            conn.close()
-
+            
             if not user:
                 flash('Email-kan ma jiro. Fadlan diiwaan geli.')
                 return render_template('login.html')
@@ -1428,6 +1437,9 @@ def login():
             flash('Khalad ayaa dhacay mareegta. Fadlan isku day mar kale.')
             print(f"Login error: {e}")
             return render_template('login.html')
+        finally:
+            if conn:
+                conn.close()
 
     return render_template('login.html')
 
@@ -1440,21 +1452,28 @@ def logout():
 @app.route('/profile')
 @login_required
 def profile():
-    conn = sqlite3.connect('dadaal.db')
-    cursor = conn.cursor()
-    cursor.execute('''
-        SELECT name, email, phone, total_earnings, referral_code, premium_until, created_at
-        FROM users WHERE id = ?
-    ''', (session['user_id'],))
-    user_data = cursor.fetchone()
+    conn = None
+    try:
+        conn = sqlite3.connect('dadaal.db')
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT name, email, phone, total_earnings, referral_code, premium_until, created_at
+            FROM users WHERE id = ?
+        ''', (session['user_id'],))
+        user_data = cursor.fetchone()
 
-    # Get referral stats
-    cursor.execute('SELECT COUNT(*) FROM referrals WHERE referrer_id = ? AND status = "completed"', (session['user_id'],))
-    referral_count = cursor.fetchone()[0]
+        # Get referral stats
+        cursor.execute('SELECT COUNT(*) FROM referrals WHERE referrer_id = ? AND status = "completed"', (session['user_id'],))
+        referral_count = cursor.fetchone()[0]
 
-    conn.close()
-
-    return render_template('profile.html', user=user_data, referral_count=referral_count)
+        return render_template('profile.html', user=user_data, referral_count=referral_count)
+    except Exception as e:
+        flash('Khalad ayaa dhacay profile-ka.')
+        print(f"Profile error: {e}")
+        return redirect(url_for('dashboard'))
+    finally:
+        if conn:
+            conn.close()
 
 
 
@@ -1577,6 +1596,7 @@ def business_plans():
 @login_required
 def marketplace():
     """Digital marketplace for selling products/services"""
+    conn = None
     try:
         conn = sqlite3.connect('dadaal.db')
         cursor = conn.cursor()
@@ -1618,20 +1638,23 @@ def marketplace():
         wholesale_products = cursor.fetchall()
 
         conn.commit()
-        conn.close()
-
         return render_template('marketplace.html', 
                              items=marketplace_items,
                              wholesale_products=wholesale_products)
 
     except Exception as e:
         flash('Khalad ayaa dhacay marketplace-ka.')
+        print(f"Marketplace error: {e}")
         return redirect(url_for('dashboard'))
+    finally:
+        if conn:
+            conn.close()
 
 @app.route('/add_marketplace_item', methods=['POST'])
 @login_required
 def add_marketplace_item():
     """Add item to marketplace"""
+    conn = None
     try:
         title = sanitize_input(request.form.get('title'))
         description = sanitize_input(request.form.get('description'))
@@ -1651,14 +1674,16 @@ def add_marketplace_item():
         ''', (session['user_id'], title, description, price, category))
 
         conn.commit()
-        conn.close()
-
         flash(f'Item "{title}" waa la ku daray marketplace-ka!')
         return redirect(url_for('marketplace'))
 
     except Exception as e:
         flash('Khalad ayaa dhacay item-ka ku darista.')
+        print(f"Add marketplace item error: {e}")
         return redirect(url_for('marketplace'))
+    finally:
+        if conn:
+            conn.close()
 
 @app.route('/affiliate')
 def affiliate():
@@ -1668,6 +1693,7 @@ def affiliate():
 @login_required
 def real_affiliate():
     """Real affiliate marketing with Alibaba, Amazon integration"""
+    conn = None
     try:
         # Get real products from different platforms
         alibaba_products = get_alibaba_products(limit=12)
@@ -1702,8 +1728,6 @@ def real_affiliate():
         ''', (session['user_id'],))
         conversions_month = cursor.fetchone()[0]
 
-        conn.close()
-
         return render_template('real_affiliate.html',
                              alibaba_products=alibaba_products,
                              amazon_products=amazon_products,
@@ -1715,6 +1739,9 @@ def real_affiliate():
         flash('Khalad ayaa dhacay affiliate marketing.')
         print(f"Real affiliate error: {e}")
         return redirect(url_for('affiliate'))
+    finally:
+        if conn:
+            conn.close()
 
 @app.route('/track_affiliate_click', methods=['POST'])
 @login_required
@@ -1740,6 +1767,7 @@ def track_affiliate_click_route():
 @login_required
 def affiliate_stats():
     """Get real-time affiliate statistics"""
+    conn = None
     try:
         conn = sqlite3.connect('dadaal.db')
         cursor = conn.cursor()
@@ -1756,8 +1784,7 @@ def affiliate_stats():
         ''', (session['user_id'],))
 
         stats = cursor.fetchone()
-        conn.close()
-
+        
         return {
             'success': True,
             'total_clicks': stats[0],
@@ -1768,7 +1795,11 @@ def affiliate_stats():
         }
 
     except Exception as e:
+        print(f"Affiliate stats error: {e}")
         return {'success': False, 'error': str(e)}
+    finally:
+        if conn:
+            conn.close()
 
 @app.route('/simulate_sale', methods=['POST'])
 @login_required
@@ -1796,12 +1827,14 @@ def simulate_affiliate_sale():
             return {'success': False, 'error': 'Commission processing failed'}
 
     except Exception as e:
+        print(f"Simulate sale error: {e}")
         return {'success': False, 'error': str(e)}
 
 @app.route('/affiliate/advanced')
 @login_required
 def advanced_affiliate():
     """Advanced affiliate dashboard with real earnings tracking"""
+    conn = None
     try:
         conn = sqlite3.connect('dadaal.db')
         cursor = conn.cursor()
@@ -1828,20 +1861,23 @@ def advanced_affiliate():
         ''', (session['user_id'],))
         recent_earnings = cursor.fetchall()
 
-        conn.close()
-
         return render_template('advanced_affiliate.html',
                              affiliate_links=affiliate_links,
                              total_affiliate_earnings=total_affiliate_earnings,
                              recent_earnings=recent_earnings)
     except Exception as e:
         flash('Khalad ayaa dhacay affiliate dashboard-ka.')
+        print(f"Advanced affiliate error: {e}")
         return redirect(url_for('affiliate'))
+    finally:
+        if conn:
+            conn.close()
 
 @app.route('/create_affiliate_link', methods=['POST'])
 @login_required
 def create_affiliate_link():
     """Create new affiliate marketing link"""
+    conn = None
     try:
         product_name = sanitize_input(request.form.get('product_name'))
         commission_rate = float(request.form.get('commission_rate', 0.20))
@@ -1862,14 +1898,16 @@ def create_affiliate_link():
         ''', (session['user_id'], product_name, link_code, commission_rate))
 
         conn.commit()
-        conn.close()
-
         flash(f'Affiliate link waa la sameeyay: {link_code}')
         return redirect(url_for('advanced_affiliate'))
 
     except Exception as e:
         flash('Khalad ayaa dhacay affiliate link samayniisa.')
+        print(f"Create affiliate link error: {e}")
         return redirect(url_for('advanced_affiliate'))
+    finally:
+        if conn:
+            conn.close()
 
 @app.route('/admin/toggle_user_status', methods=['POST'])
 @admin_required
@@ -1898,6 +1936,7 @@ def toggle_user_status():
 @app.route('/admin/delete_user', methods=['POST'])
 @admin_required
 def delete_user():
+    conn = None
     try:
         data = request.get_json()
         user_id = data.get('user_id')
@@ -1914,40 +1953,49 @@ def delete_user():
         cursor.execute('DELETE FROM users WHERE id = ?', (user_id,))
 
         conn.commit()
-        conn.close()
-
         return {'success': True, 'message': 'User deleted successfully'}
 
     except Exception as e:
         print(f"Delete user error: {e}")
         return {'success': False, 'error': str(e)}
+    finally:
+        if conn:
+            conn.close()
 
 @app.route('/admin/users')
 @admin_required
 def admin_users():
-    conn = sqlite3.connect('dadaal.db')
-    cursor = conn.cursor()
+    conn = None
+    try:
+        conn = sqlite3.connect('dadaal.db')
+        cursor = conn.cursor()
 
-    # Get all users with detailed information
-    cursor.execute('''
-        SELECT u.id, u.name, u.email, u.phone, u.total_earnings, u.status, 
-               u.premium_until, u.created_at, u.referral_code,
-               COUNT(r.id) as referrals_count
-        FROM users u
-        LEFT JOIN referrals r ON u.id = r.referrer_id AND r.status = 'completed'
-        GROUP BY u.id
-        ORDER BY u.created_at DESC
-    ''')
-    users = cursor.fetchall()
+        # Get all users with detailed information
+        cursor.execute('''
+            SELECT u.id, u.name, u.email, u.phone, u.total_earnings, u.status, 
+                   u.premium_until, u.created_at, u.referral_code,
+                   COUNT(r.id) as referrals_count
+            FROM users u
+            LEFT JOIN referrals r ON u.id = r.referrer_id AND r.status = 'completed'
+            GROUP BY u.id
+            ORDER BY u.created_at DESC
+        ''')
+        users = cursor.fetchall()
 
-    conn.close()
-
-    return render_template('admin_users.html', users=users)
+        return render_template('admin_users.html', users=users)
+    except Exception as e:
+        flash('Khalad ayaa dhacay helida users.')
+        print(f"Admin users error: {e}")
+        return redirect(url_for('admin_dashboard'))
+    finally:
+        if conn:
+            conn.close()
 
 @app.route('/admin/payments')
 @admin_required
 def admin_payments():
     """Admin payment analytics dashboard."""
+    conn = None
     try:
         conn = sqlite3.connect('dadaal.db')
         cursor = conn.cursor()
@@ -2004,8 +2052,6 @@ def admin_payments():
         ''')
         recent_payments = cursor.fetchall()
 
-        conn.close()
-
         return render_template('admin_payments.html',
                                total_revenue=total_revenue,
                                mobile_money_count=mobile_money_stats[0],
@@ -2022,11 +2068,15 @@ def admin_payments():
         print(f"Admin payments error: {e}")
         flash(f"Error loading payment analytics: {e}")
         return redirect(url_for('admin_dashboard'))
+    finally:
+        if conn:
+            conn.close()
 
 @app.route('/admin/analytics')
 @admin_required
 def admin_analytics():
     """Admin analytics dashboard."""
+    conn = None
     try:
         conn = sqlite3.connect('dadaal.db')
         cursor = conn.cursor()
@@ -2066,8 +2116,6 @@ def admin_analytics():
         ''')
         payment_stats = cursor.fetchall()
 
-        conn.close()
-
         return render_template('admin_analytics.html',
                                total_users=total_users,
                                active_users=active_users,
@@ -2080,6 +2128,9 @@ def admin_analytics():
         print(f"Analytics error: {e}")
         flash(f"Error loading analytics: {e}")
         return redirect(url_for('admin_dashboard'))
+    finally:
+        if conn:
+            conn.close()
 
 @app.route('/earnings')
 def earnings():
@@ -2118,6 +2169,7 @@ def wholesale():
 @app.route('/wholesale_signup', methods=['POST'])
 def wholesale_signup():
     """Handle wholesale partner signup"""
+    conn = None
     try:
         if request.content_type == 'application/json':
             data = request.get_json()
@@ -2152,46 +2204,33 @@ def wholesale_signup():
         else:
             commission_tier = 'bronze'
 
-        try:
-            conn = sqlite3.connect('dadaal.db', timeout=20.0)
-            conn.execute('PRAGMA journal_mode=WAL;')  # Better concurrency
-            cursor = conn.cursor()
+        conn = sqlite3.connect('dadaal.db', timeout=20.0)
+        conn.execute('PRAGMA journal_mode=WAL;')  # Better concurrency
+        cursor = conn.cursor()
 
-            # Check if business email already exists
-            cursor.execute('SELECT id FROM wholesale_partners WHERE business_email = ?', (business_email,))
-            existing_partner = cursor.fetchone()
-            if existing_partner:
-                conn.close()
-                if request.content_type == 'application/json':
-                    return {'success': False, 'error': 'Business email-kan horay ayaa loo isticmaalay wholesale partner ahaan'}
-                else:
-                    flash('Business email-kan horay ayaa loo isticmaalay wholesale partner ahaan.')
-                    return redirect(url_for('wholesale'))
-        except sqlite3.OperationalError as e:
-            if 'database is locked' in str(e):
-                if request.content_type == 'application/json':
-                    return {'success': False, 'error': 'Database waa xidhani hadda. Fadlan daqiiqo dhawr ka dib isku day.'}
-                else:
-                    flash('Database waa xidhani hadda. Fadlan daqiiqo dhawr ka dib isku day.')
-                    return redirect(url_for('wholesale'))
+        # Check if business email already exists
+        cursor.execute('SELECT id FROM wholesale_partners WHERE business_email = ?', (business_email,))
+        existing_partner = cursor.fetchone()
+        if existing_partner:
+            if request.content_type == 'application/json':
+                return {'success': False, 'error': 'Business email-kan horay ayaa loo isticmaalay wholesale partner ahaan'}
             else:
-                raise e
-
-        # Get user_id from session (if logged in) or create guest application
-        user_id = session.get('user_id')
-        if not user_id:
-            # Check if email already exists as a regular user
-            cursor.execute('SELECT id FROM users WHERE email = ?', (business_email,))
-            existing_user = cursor.fetchone()
-            if existing_user:
-                user_id = existing_user[0]
-            else:
-                # Create a temporary user for this application
-                cursor.execute('''
-                    INSERT INTO users (name, email, password_hash, status)
-                    VALUES (?, ?, ?, 'wholesale_pending')
-                ''', (contact_person, business_email, hash_password('temp_password')))
-                user_id = cursor.lastrowid
+                flash('Business email-kan horay ayaa loo isticmaalay wholesale partner ahaan.')
+                return redirect(url_for('wholesale'))
+        
+        # Check if email already exists as a regular user
+        cursor.execute('SELECT id FROM users WHERE email = ?', (business_email,))
+        existing_user = cursor.fetchone()
+        user_id = None
+        if existing_user:
+            user_id = existing_user[0]
+        else:
+            # Create a temporary user for this application
+            cursor.execute('''
+                INSERT INTO users (name, email, password_hash, status)
+                VALUES (?, ?, ?, 'wholesale_pending')
+            ''', (contact_person, business_email, hash_password('temp_password')))
+            user_id = cursor.lastrowid
 
         # Insert wholesale partner application
         cursor.execute('''
@@ -2221,7 +2260,7 @@ def wholesale_signup():
             return redirect(url_for('wholesale_dashboard'))
 
     except Exception as db_error:
-        if 'conn' in locals():
+        if conn:
             conn.rollback()
         print(f"Database error in wholesale signup: {db_error}")
         if request.content_type == 'application/json':
@@ -2230,13 +2269,14 @@ def wholesale_signup():
             flash('Khalad ayaa dhacay application submit-ka. Fadlan isku day mar kale.')
             return redirect(url_for('wholesale'))
     finally:
-        if 'conn' in locals():
+        if conn:
             conn.close()
 
 @app.route('/wholesale/dashboard')
 @login_required
 def wholesale_dashboard():
     """Wholesale partner dashboard"""
+    conn = None
     try:
         conn = sqlite3.connect('dadaal.db')
         cursor = conn.cursor()
@@ -2281,8 +2321,6 @@ def wholesale_dashboard():
         ''', (partner_data[0],))
         recent_sales = cursor.fetchall()
 
-        conn.close()
-
         return render_template('wholesale_dashboard.html',
                              partner_data=partner_data,
                              products=products,
@@ -2291,12 +2329,17 @@ def wholesale_dashboard():
 
     except Exception as e:
         flash('Khalad ayaa dhacay dashboard-ka.')
+        print(f"Wholesale dashboard error: {e}")
         return redirect(url_for('wholesale'))
+    finally:
+        if conn:
+            conn.close()
 
 @app.route('/wholesale/buy_product', methods=['POST'])
 @login_required
-def buy_wholesale_product():
+def wholesale_buy_product():
     """Process product purchase and instant commission"""
+    conn = None
     try:
         product_id = int(request.form.get('product_id'))
         quantity = int(request.form.get('quantity', 1))
@@ -2351,8 +2394,7 @@ def buy_wholesale_product():
         ''', (quantity, product_id))
 
         conn.commit()
-        conn.close()
-
+        
         flash(f'Guul! Product waa la iibsaday. Partner-ka wuxuu helay ${commission_amount:.2f} commission!')
         return redirect(url_for('marketplace'))
 
@@ -2360,11 +2402,15 @@ def buy_wholesale_product():
         flash('Khalad ayaa dhacay product iibashada.')
         print(f"Wholesale buy error: {e}")
         return redirect(url_for('marketplace'))
+    finally:
+        if conn:
+            conn.close()
 
 @app.route('/wholesale/add_product', methods=['POST'])
 @login_required
 def add_wholesale_product():
     """Add product to wholesale catalog"""
+    conn = None
     try:
         # Get form data
         product_name = sanitize_input(request.form.get('product_name'))
@@ -2404,14 +2450,16 @@ def add_wholesale_product():
               category, sku, stock_quantity))
 
         conn.commit()
-        conn.close()
-
         flash(f'Product "{product_name}" waa la ku daray catalog-ga!')
         return redirect(url_for('wholesale_dashboard'))
 
     except Exception as e:
         flash('Khalad ayaa dhacay product-ka ku darista.')
+        print(f"Add wholesale product error: {e}")
         return redirect(url_for('wholesale_dashboard'))
+    finally:
+        if conn:
+            conn.close()
 
 def send_wholesale_notification(company_name, contact_person, business_email):
     """Send notification to admin about new wholesale application"""
@@ -2452,17 +2500,24 @@ def contact():
         message = request.form.get('message')
 
         # Save to database
-        conn = sqlite3.connect('dadaal.db')
-        cursor = conn.cursor()
-        cursor.execute('''
-            INSERT INTO contact_messages (name, email, subject, message)
-            VALUES (?, ?, ?, ?)
-        ''', (name, email, subject, message))
-        conn.commit()
-        conn.close()
-
-        flash('Fariintaada si guul leh ayaa loo diray! Waan kaa jawaabi doonaa dhaqso dhaqso.')
-        return redirect(url_for('contact'))
+        conn = None
+        try:
+            conn = sqlite3.connect('dadaal.db')
+            cursor = conn.cursor()
+            cursor.execute('''
+                INSERT INTO contact_messages (name, email, subject, message)
+                VALUES (?, ?, ?, ?)
+            ''', (name, email, subject, message))
+            conn.commit()
+            flash('Fariintaada si guul leh ayaa loo diray! Waan kaa jawaabi doonaa dhaqso dhaqso.')
+            return redirect(url_for('contact'))
+        except Exception as e:
+            flash('Khalad ayaa dhacay fariinta dirista.')
+            print(f"Contact form error: {e}")
+            return redirect(url_for('contact'))
+        finally:
+            if conn:
+                conn.close()
 
     return render_template('contact.html')
 

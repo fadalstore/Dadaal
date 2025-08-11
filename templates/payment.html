@@ -417,6 +417,10 @@
                 btn.innerHTML = originalText;
                 btn.disabled = false;
             }
+        }).catch(error => {
+            console.error('Promise rejection:', error);
+            btn.innerHTML = originalText;
+            btn.disabled = false;
         });
 
         // Real-time amount validation
