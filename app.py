@@ -85,11 +85,11 @@ def send_reset_email(email, reset_token):
         reset_link = f"https://dadaal.onrender.com/reset_password/{reset_token}"
 
         if not gmail_user or not gmail_password:
-            print(f"Gmail credentials not configured. Password reset link for {email}: {reset_link}")
-            # For Render deployment, show link on screen if email fails
-            from flask import flash
-            flash(f"Demo Mode: Password reset link: {reset_link}")
-            return True  # Return True for demo purposes
+            print(f"⚠️ Gmail credentials not configured!")
+            print(f"Reset link for {email}: {reset_link}")
+            # For demo mode, show link in flash message
+            flash(f"Demo Mode: Password reset link-kaaga: {reset_link}")
+            return False  # Return False to indicate email wasn't sent
 
         # Email content
         subject = "Dadaal App - Password Reset"
@@ -326,34 +326,43 @@ def migrate_database():
     conn = sqlite3.connect('dadaal.db')
     cursor = conn.cursor()
 
-    # Check if password_hash column exists
-    cursor.execute("PRAGMA table_info(users)")
-    columns = [column[1] for column in cursor.fetchall()]
+    try:
+        # Check if password_hash column exists
+        cursor.execute("PRAGMA table_info(users)")
+        columns = [column[1] for column in cursor.fetchall()]
 
-    if 'password_hash' not in columns:
-        # Add missing columns to users table
-        try:
-            cursor.execute('ALTER TABLE users ADD COLUMN password_hash TEXT NOT NULL DEFAULT ""')
-            cursor.execute('ALTER TABLE users ADD COLUMN total_earnings REAL DEFAULT 0')
-            cursor.execute('ALTER TABLE users ADD COLUMN referral_code TEXT')
-            cursor.execute('ALTER TABLE users ADD COLUMN referrer_id INTEGER')
-            cursor.execute('ALTER TABLE users ADD COLUMN status TEXT DEFAULT "active"')
-            cursor.execute('ALTER TABLE users ADD COLUMN premium_until DATE')
-            cursor.execute('ALTER TABLE users ADD COLUMN email_verified BOOLEAN DEFAULT 0')
-            cursor.execute('ALTER TABLE users ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP')
-            cursor.execute('ALTER TABLE users ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP')
-            print("Database migration completed successfully!")
-        except sqlite3.OperationalError as e:
-            print(f"Migration error (might be normal): {e}")
+        if 'password_hash' not in columns:
+            # Add missing columns to users table one by one
+            columns_to_add = [
+                ('password_hash', 'TEXT NOT NULL DEFAULT ""'),
+                ('total_earnings', 'REAL DEFAULT 0'),
+                ('referral_code', 'TEXT'),
+                ('referrer_id', 'INTEGER'),
+                ('status', 'TEXT DEFAULT "active"'),
+                ('premium_until', 'DATE'),
+                ('email_verified', 'BOOLEAN DEFAULT 0'),
+                ('created_at', 'TIMESTAMP DEFAULT CURRENT_TIMESTAMP'),
+                ('updated_at', 'TIMESTAMP DEFAULT CURRENT_TIMESTAMP')
+            ]
+            
+            for col_name, col_definition in columns_to_add:
+                try:
+                    cursor.execute(f'ALTER TABLE users ADD COLUMN {col_name} {col_definition}')
+                    print(f"Added column: {col_name}")
+                except sqlite3.OperationalError as e:
+                    if "duplicate column name" in str(e):
+                        print(f"Column {col_name} already exists")
+                    else:
+                        print(f"Error adding column {col_name}: {e}")
 
-    # Check and add user_activity_logs table if it doesn't exist
-    cursor.execute("PRAGMA table_info(user_activity_logs)")
-    columns = [column[1] for column in cursor.fetchall()]
-
-    if not columns:  # Table doesn't exist
-        try:
+        # Check and add user_activity_logs table if it doesn't exist
+        cursor.execute('''
+            SELECT name FROM sqlite_master WHERE type='table' AND name='user_activity_logs'
+        ''')
+        
+        if not cursor.fetchone():  # Table doesn't exist
             cursor.execute('''
-                CREATE TABLE IF NOT EXISTS user_activity_logs (
+                CREATE TABLE user_activity_logs (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     user_id INTEGER NOT NULL,
                     activity_type TEXT NOT NULL,
@@ -363,11 +372,15 @@ def migrate_database():
                 )
             ''')
             print("user_activity_logs table created successfully!")
-        except sqlite3.OperationalError as e:
-            print(f"Error creating user_activity_logs table: {e}")
 
-    conn.commit()
-    conn.close()
+        conn.commit()
+        print("Database migration completed successfully!")
+        
+    except Exception as e:
+        print(f"Migration error: {e}")
+        conn.rollback()
+    finally:
+        conn.close()
 
 # Initialize database
 init_db()
@@ -402,8 +415,9 @@ def admin():
     if request.method == 'POST':
         password = request.form.get('password')
 
-        # Admin password - change this in production!
-        if password == 'dadaal_admin_2025':
+        # Admin password from environment variable for security
+        admin_password = os.environ.get('ADMIN_PASSWORD', 'dadaal_admin_2025')
+        if password == admin_password:
             session['is_admin'] = True
             session.permanent = True
             flash('Admin-ka si guul leh ayaad u gashay!')
@@ -644,12 +658,14 @@ def process_mobile_money_payment(amount, phone):
                 'error': 'Nambarka telefoonka waa inuu bilaabmaa +252 (tusaale: +252611234567)'
             }
         
-        # Ensure phone has correct length (252 + 8-9 digits)
-        clean_phone = phone.replace('+252', '').replace('252', '')
-        if len(clean_phone) < 8 or len(clean_phone) > 9:
+        # Clean and validate phone number length
+        clean_phone = phone.replace('+252', '').replace('252', '').replace(' ', '').replace('-', '')
+        
+        # Somalia phone numbers: 61XXXXXXX (Hormuud), 63XXXXXXX (Somtel), etc.
+        if not (len(clean_phone) == 9 and clean_phone.startswith(('61', '62', '63', '65', '90'))):
             return {
                 'success': False,
-                'error': 'Nambarka telefoonka format khalad - tusaale: +252611234567'
+                'error': 'Nambarka telefoonka format khalad. Tusaale sax ah: +252611234567'
             }
         
         # Validate amount
@@ -764,13 +780,18 @@ def register():
             flash('Password-yada ma isku mid aha.')
             return redirect(url_for('register'))
 
-        # Check if email exists
-        conn = sqlite3.connect('dadaal.db')
-        cursor = conn.cursor()
-        cursor.execute('SELECT id FROM users WHERE email = ?', (email,))
-        if cursor.fetchone():
-            flash('Email-kan horay ayaa loo isticmaalay.')
-            conn.close()
+        try:
+            # Check if email exists
+            conn = sqlite3.connect('dadaal.db')
+            cursor = conn.cursor()
+            cursor.execute('SELECT id FROM users WHERE email = ?', (email,))
+            if cursor.fetchone():
+                flash('Email-kan horay ayaa loo isticmaalay.')
+                conn.close()
+                return redirect(url_for('register'))
+        except Exception as e:
+            flash('Khalad ayaa dhacay database-ka. Fadlan isku day mar kale.')
+            print(f"Database error during registration: {e}")
             return redirect(url_for('register'))
 
         # Find referrer if referral code provided
@@ -1488,8 +1509,11 @@ def contact():
     return render_template('contact.html')
 
 if __name__ == '__main__':
+    # Check if running in production
+    is_production = os.environ.get('RENDER') or os.environ.get('RAILWAY_ENVIRONMENT')
+    
     app.run(
         host='0.0.0.0',
         port=int(os.environ.get('PORT', 5000)),
-        debug=True
+        debug=not is_production  # Disable debug in production
     )
