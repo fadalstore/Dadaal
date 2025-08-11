@@ -1,0 +1,156 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🛍️ Digital Marketplace - Dadaal App</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        .marketplace-hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        
+        .add-item-form {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            margin: 20px 0;
+        }
+        
+        .marketplace-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .item-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .item-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .item-info {
+            padding: 20px;
+        }
+        
+        .item-price {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #27ae60;
+            margin: 10px 0;
+        }
+        
+        .buy-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .buy-btn:hover {
+            box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3);
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        .add-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="marketplace-hero">
+        <h1>🛍️ Digital Marketplace</h1>
+        <p>Iibiya ama ibsada adeeg iyo product digital ah</p>
+    </div>
+
+    <div class="container">
+        <!-- Add New Item Form -->
+        <div class="add-item-form">
+            <h2>➕ Ku Dar Item Cusub</h2>
+            <form method="POST" action="/add_marketplace_item">
+                <input type="text" name="title" placeholder="Magaca Product/Service" class="form-input" required>
+                <textarea name="description" placeholder="Faahfaahin" class="form-input" rows="3"></textarea>
+                <input type="number" name="price" step="0.01" min="0.01" placeholder="Qiimaha ($)" class="form-input" required>
+                <select name="category" class="form-input" required>
+                    <option value="">Dooro Category</option>
+                    <option value="digital_services">Digital Services</option>
+                    <option value="software">Software</option>
+                    <option value="courses">Online Courses</option>
+                    <option value="ebooks">E-books</option>
+                    <option value="graphics">Graphics & Design</option>
+                    <option value="marketing">Marketing Services</option>
+                    <option value="other">Other</option>
+                </select>
+                <button type="submit" class="add-btn">🚀 Ku Dar Marketplace</button>
+            </form>
+        </div>
+
+        <!-- Marketplace Items -->
+        <h2 style="text-align: center; margin: 40px 0;">🛒 Available Items</h2>
+        
+        {% if items %}
+            <div class="marketplace-grid">
+                {% for item in items %}
+                <div class="item-card">
+                    <div class="item-info">
+                        <h3>{{ item[2] }}</h3>
+                        <p style="color: #666; margin: 10px 0;">{{ item[3] or 'Faahfaahin ma jirto' }}</p>
+                        <div class="item-price">${{ "%.2f"|format(item[4]) }}</div>
+                        <p><strong>Category:</strong> {{ item[5] or 'General' }}</p>
+                        <p><strong>Seller:</strong> {{ item[9] }}</p>
+                        <button class="buy-btn" onclick="buyItem({{ item[0] }}, '{{ item[2] }}', {{ item[4] }})">
+                            💳 Ibsasho
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div style="text-align: center; padding: 60px; color: #666;">
+                <h3>🛍️ Weli ma jiraan items marketplace-ka</h3>
+                <p>Noqo kii ugu horeeyay ee wax ku iibiya!</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <script>
+        function buyItem(itemId, title, price) {
+            if (confirm(`Ma hubtaa inaad rabto inaad ibsato "${title}" for $${price}?`)) {
+                // Redirect to payment with marketplace item details
+                window.location.href = `/payment?type=marketplace&item_id=${itemId}&amount=${price}`;
+            }
+        }
+    </script>
+</body>
+</html>

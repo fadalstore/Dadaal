@@ -764,6 +764,61 @@ def process_bank_transfer(amount, phone):
             'error': 'Bank transfer failed'
         }
 
+def process_crypto_payment(amount, crypto_type, wallet_address):
+    """Process cryptocurrency payment"""
+    try:
+        # Validate crypto type
+        supported_cryptos = ['bitcoin', 'ethereum', 'usdt', 'bnb']
+        if crypto_type.lower() not in supported_cryptos:
+            return {
+                'success': False,
+                'error': f'Cryptocurrency {crypto_type} lama taageero'
+            }
+        
+        # Validate wallet address format (basic validation)
+        if len(wallet_address) < 26 or len(wallet_address) > 62:
+            return {
+                'success': False,
+                'error': 'Wallet address format khalad'
+            }
+        
+        # Generate transaction ID
+        transaction_id = f"CRYPTO-{crypto_type.upper()}-{secrets.token_hex(8).upper()}"
+        
+        # Simulate crypto payment processing
+        print(f"Processing {crypto_type} payment: ${amount} to {wallet_address}")
+        
+        # In production, integrate with crypto APIs:
+        # - Coinbase Commerce API
+        # - BitPay API
+        # - Blockchain.info API
+        
+        return {
+            'success': True,
+            'transaction_id': transaction_id,
+            'message': f'{crypto_type.title()} payment ${amount} si guul leh ayaa loo qabtay',
+            'crypto_address': wallet_address,
+            'amount_crypto': amount / get_crypto_rate(crypto_type)  # Convert USD to crypto
+        }
+        
+    except Exception as e:
+        print(f"Crypto payment error: {e}")
+        return {
+            'success': False,
+            'error': f'Cryptocurrency payment failed: {str(e)}'
+        }
+
+def get_crypto_rate(crypto_type):
+    """Get current crypto exchange rate (demo rates)"""
+    # In production, integrate with CoinGecko or CryptoCompare API
+    demo_rates = {
+        'bitcoin': 45000,
+        'ethereum': 2800,
+        'usdt': 1.00,
+        'bnb': 320
+    }
+    return demo_rates.get(crypto_type.lower(), 1)
+
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -1258,9 +1313,168 @@ def process_premium():
         flash('Khalad ayaa dhacay premium processing. Fadlan isku day mar kale.')
         return redirect(url_for('premium'))
 
+@app.route('/vip_services')
+@login_required
+def vip_services():
+    """VIP Services for high-paying customers"""
+    return render_template('vip_services.html')
+
+@app.route('/business_plans')
+def business_plans():
+    """Business subscription plans for companies"""
+    return render_template('business_plans.html')
+
+@app.route('/marketplace')
+@login_required
+def marketplace():
+    """Digital marketplace for selling products/services"""
+    try:
+        conn = sqlite3.connect('dadaal.db')
+        cursor = conn.cursor()
+        
+        # Get marketplace items (create table if needed)
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS marketplace_items (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                seller_id INTEGER NOT NULL,
+                title TEXT NOT NULL,
+                description TEXT,
+                price REAL NOT NULL,
+                category TEXT,
+                image_url TEXT,
+                status TEXT DEFAULT 'active',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (seller_id) REFERENCES users (id)
+            )
+        ''')
+        
+        # Get active marketplace items
+        cursor.execute('''
+            SELECT m.*, u.name as seller_name 
+            FROM marketplace_items m 
+            JOIN users u ON m.seller_id = u.id 
+            WHERE m.status = 'active' 
+            ORDER BY m.created_at DESC
+        ''')
+        marketplace_items = cursor.fetchall()
+        
+        conn.commit()
+        conn.close()
+        
+        return render_template('marketplace.html', items=marketplace_items)
+        
+    except Exception as e:
+        flash('Khalad ayaa dhacay marketplace-ka.')
+        return redirect(url_for('dashboard'))
+
+@app.route('/add_marketplace_item', methods=['POST'])
+@login_required
+def add_marketplace_item():
+    """Add item to marketplace"""
+    try:
+        title = sanitize_input(request.form.get('title'))
+        description = sanitize_input(request.form.get('description'))
+        price = float(request.form.get('price'))
+        category = sanitize_input(request.form.get('category'))
+        
+        if not title or price <= 0:
+            flash('Fadlan buuxi macluumaadka item-ka.')
+            return redirect(url_for('marketplace'))
+        
+        conn = sqlite3.connect('dadaal.db')
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            INSERT INTO marketplace_items (seller_id, title, description, price, category)
+            VALUES (?, ?, ?, ?, ?)
+        ''', (session['user_id'], title, description, price, category))
+        
+        conn.commit()
+        conn.close()
+        
+        flash(f'Item "{title}" waa la ku daray marketplace-ka!')
+        return redirect(url_for('marketplace'))
+        
+    except Exception as e:
+        flash('Khalad ayaa dhacay item-ka ku darista.')
+        return redirect(url_for('marketplace'))
+
 @app.route('/affiliate')
 def affiliate():
     return render_template('affiliate.html')
+
+@app.route('/affiliate/advanced')
+@login_required
+def advanced_affiliate():
+    """Advanced affiliate dashboard with real earnings tracking"""
+    try:
+        conn = sqlite3.connect('dadaal.db')
+        cursor = conn.cursor()
+        
+        # Get user's affiliate links and performance
+        cursor.execute('''
+            SELECT product_name, link_code, clicks, conversions, commission_rate
+            FROM affiliate_links WHERE user_id = ?
+        ''', (session['user_id'],))
+        affiliate_links = cursor.fetchall()
+        
+        # Calculate total affiliate earnings
+        cursor.execute('''
+            SELECT SUM(amount) FROM transactions 
+            WHERE user_id = ? AND type = 'earning' AND description LIKE '%affiliate%'
+        ''', (session['user_id'],))
+        total_affiliate_earnings = cursor.fetchone()[0] or 0
+        
+        # Get recent affiliate activity
+        cursor.execute('''
+            SELECT amount, description, created_at FROM transactions 
+            WHERE user_id = ? AND type = 'earning' 
+            ORDER BY created_at DESC LIMIT 10
+        ''', (session['user_id'],))
+        recent_earnings = cursor.fetchall()
+        
+        conn.close()
+        
+        return render_template('advanced_affiliate.html',
+                             affiliate_links=affiliate_links,
+                             total_affiliate_earnings=total_affiliate_earnings,
+                             recent_earnings=recent_earnings)
+    except Exception as e:
+        flash('Khalad ayaa dhacay affiliate dashboard-ka.')
+        return redirect(url_for('affiliate'))
+
+@app.route('/create_affiliate_link', methods=['POST'])
+@login_required
+def create_affiliate_link():
+    """Create new affiliate marketing link"""
+    try:
+        product_name = sanitize_input(request.form.get('product_name'))
+        commission_rate = float(request.form.get('commission_rate', 0.20))
+        
+        if not product_name:
+            flash('Fadlan geli magaca product-ka.')
+            return redirect(url_for('advanced_affiliate'))
+        
+        # Generate unique link code
+        link_code = f"AFF-{secrets.token_hex(8).upper()}"
+        
+        conn = sqlite3.connect('dadaal.db')
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            INSERT INTO affiliate_links (user_id, product_name, link_code, commission_rate)
+            VALUES (?, ?, ?, ?)
+        ''', (session['user_id'], product_name, link_code, commission_rate))
+        
+        conn.commit()
+        conn.close()
+        
+        flash(f'Affiliate link waa la sameeyay: {link_code}')
+        return redirect(url_for('advanced_affiliate'))
+        
+    except Exception as e:
+        flash('Khalad ayaa dhacay affiliate link samayniisa.')
+        return redirect(url_for('advanced_affiliate'))
 
 @app.route('/admin/toggle_user_status', methods=['POST'])
 @admin_required
@@ -1528,8 +1742,19 @@ if __name__ == '__main__':
     # Check if running in production
     is_production = os.environ.get('RENDER') or os.environ.get('RAILWAY_ENVIRONMENT')
     
-    app.run(
-        host='0.0.0.0',
-        port=int(os.environ.get('PORT', 5000)),
-        debug=not is_production  # Disable debug in production
-    )
+    try:
+        app.run(
+            host='0.0.0.0',
+            port=int(os.environ.get('PORT', 5000)),
+            debug=not is_production  # Disable debug in production
+        )
+    except OSError as e:
+        if "Address already in use" in str(e):
+            print("Port 5000 is busy. Trying port 5001...")
+            app.run(
+                host='0.0.0.0',
+                port=5001,
+                debug=not is_production
+            )
+        else:
+            raise e

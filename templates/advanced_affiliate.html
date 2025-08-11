@@ -1,0 +1,182 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Affiliate Dashboard - Dadaal App</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        .affiliate-hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        
+        .affiliate-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #27ae60;
+            margin-bottom: 10px;
+        }
+        
+        .affiliate-links {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            margin: 20px 0;
+        }
+        
+        .link-item {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border-left: 4px solid #27ae60;
+        }
+        
+        .link-code {
+            font-family: monospace;
+            background: #e9ecef;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        
+        .create-link-form {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            margin: 20px 0;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 16px;
+            margin: 10px 0;
+        }
+        
+        .create-btn {
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .create-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(39, 174, 96, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="affiliate-hero">
+        <h1>💼 Advanced Affiliate Dashboard</h1>
+        <p>Maamulidda advanced affiliate marketing system</p>
+    </div>
+
+    <div class="container">
+        <!-- Earnings Stats -->
+        <div class="affiliate-stats">
+            <div class="stat-card">
+                <div class="stat-value">${{ "%.2f"|format(total_affiliate_earnings) }}</div>
+                <h3>📊 Total Affiliate Earnings</h3>
+                <p>Dhamaan lacagta aad ka heshay affiliate marketing</p>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-value">{{ affiliate_links|length }}</div>
+                <h3>🔗 Active Links</h3>
+                <p>Affiliate links-ka shaqaynaya</p>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-value">{{ recent_earnings|length }}</div>
+                <h3>⚡ Recent Activities</h3>
+                <p>Wax-qabadyadii u danbeeyay</p>
+            </div>
+        </div>
+
+        <!-- Create New Affiliate Link -->
+        <div class="create-link-form">
+            <h2>🆕 Samee Affiliate Link Cusub</h2>
+            <form method="POST" action="/create_affiliate_link">
+                <input type="text" name="product_name" placeholder="Magaca Product-ka (tusaale: iPhone 15)" class="form-input" required>
+                <input type="number" name="commission_rate" step="0.01" min="0.01" max="1.00" value="0.20" placeholder="Commission Rate (0.20 = 20%)" class="form-input">
+                <button type="submit" class="create-btn">🚀 Samee Link</button>
+            </form>
+        </div>
+
+        <!-- Active Affiliate Links -->
+        <div class="affiliate-links">
+            <h2>🔗 Your Affiliate Links</h2>
+            {% if affiliate_links %}
+                {% for link in affiliate_links %}
+                <div class="link-item">
+                    <h3>{{ link[0] }}</h3>
+                    <p><strong>Link Code:</strong> <span class="link-code">{{ link[1] }}</span></p>
+                    <p><strong>Clicks:</strong> {{ link[2] }} | <strong>Conversions:</strong> {{ link[3] }} | <strong>Commission:</strong> {{ (link[4] * 100)|int }}%</p>
+                    <p><strong>Your Link:</strong> https://dadaal.onrender.com/ref/{{ link[1] }}</p>
+                    <button onclick="copyLink('https://dadaal.onrender.com/ref/{{ link[1] }}')" class="create-btn" style="font-size: 0.9rem; padding: 8px 15px;">📋 Copy Link</button>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p style="text-align: center; color: #666; padding: 40px;">
+                    🔗 Weli ma samaysan affiliate links. Samee mid ka kore!
+                </p>
+            {% endif %}
+        </div>
+
+        <!-- Recent Earnings -->
+        <div class="affiliate-links">
+            <h2>💰 Recent Earnings</h2>
+            {% if recent_earnings %}
+                {% for earning in recent_earnings %}
+                <div class="link-item">
+                    <p><strong>${{ "%.2f"|format(earning[0]) }}</strong> - {{ earning[1] }}</p>
+                    <small>{{ earning[2] }}</small>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p style="text-align: center; color: #666; padding: 40px;">
+                    💰 Weli ma haysato earnings. Bilaw marketing!
+                </p>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        function copyLink(link) {
+            navigator.clipboard.writeText(link).then(function() {
+                alert('Link waa la copy gareeyay! 📋');
+            });
+        }
+    </script>
+</body>
+</html>
